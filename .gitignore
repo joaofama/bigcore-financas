@@ -1,0 +1,49 @@
+## [ Visual Studio / .NET ] ##
+# Pasta de configurações do VS
+.vs/
+[Cc]ache/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Pastas de compilação (Binários)
+[Bb]in/
+[Oo]bj/
+publish/
+
+# Arquivos de log e diagnóstico
+*.log
+*.svclog
+
+## [ Security & Environment ] ##
+# NUNCA commite suas chaves e senhas
+.env
+.env.local
+.env.*.local
+appsettings.Development.json
+
+## [ JavaScript / Vue.js / Node ] ##
+# Dependências do front-end
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Pasta de build final do Vue
+dist/
+
+## [ Docker & Databases ] ##
+# Volumes locais de dados (se você mapear pastas para o Mongo/Redis)
+.docker/
+data/db/
+data/redis/
+
+# Logs do Docker
+.logs/
+
+## [ OS Specific ] ##
+# Mac
+.DS_Store
+# Windows
+Thumbs.db
