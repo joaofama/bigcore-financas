@@ -1,10 +1,8 @@
 ﻿using Financas.Domain.Entities;
 using Financas.Infrastructure.Configurations;
 using Microsoft.Extensions.Options;
-using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
-using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 
 namespace Financas.Infrastructure.Context;
@@ -15,38 +13,34 @@ public class MongoDbContext
 
     public MongoDbContext(IOptions<MongoDbSettings> settings)
     {
-        // 1. Configura o cliente usando a ConnectionString montada na classe de Settings
         var client = new MongoClient(settings.Value.ConnectionString);
         _database = client.GetDatabase(settings.Value.DatabaseName);
 
-        // 2. Regista as convenções e mapeamentos
         RegisterConventions();
         MapEntities();
     }
 
-    // Acesso às Coleções (Equivalente às Tabelas no SQL)
+
     public IMongoCollection<Usuario> Usuarios => _database.GetCollection<Usuario>("Usuarios");
     public IMongoCollection<Categoria> Categorias => _database.GetCollection<Categoria>("Categorias");
     public IMongoCollection<Transacao> Transacoes => _database.GetCollection<Transacao>("Transacoes");
 
-    private void RegisterConventions()
+    private static void RegisterConventions()
     {
-        // Define que o JSON no MongoDB usará camelCase (ex: NomeUsuario -> nomeUsuario)
-        // E ignora campos extras que possam existir no banco mas não na classe
         var pack = new ConventionPack
         {
-            new CamelCaseElementNameConvention(),
-            new IgnoreExtraElementsConvention(true)
+            new CamelCaseElementNameConvention(), 
+            new IgnoreExtraElementsConvention(true) 
         };
 
-        ConventionRegistry.Register("FinancasConventions", pack, t => true);
+        if (ConventionRegistry.Lookup(typeof(CamelCaseElementNameConvention)) == null)
+        {
+            ConventionRegistry.Register("FinancasConventions", pack, t => true);
+        }
     }
 
-    private void MapEntities()
+    private static void MapEntities()
     {
-        // Configuração Global para GUIDs: Salva como String no banco para ser legível
-        BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
-
         // Mapeamento da Entidade USUARIO
         if (!BsonClassMap.IsClassMapRegistered(typeof(Usuario)))
         {
@@ -65,12 +59,11 @@ public class MongoDbContext
             {
                 cm.AutoMap();
                 cm.MapIdProperty(c => c.Id);
-                // Garante que a lista de subcategorias seja mapeada corretamente
                 cm.MapField(c => c.Subcategorias).SetElementName("subcategorias");
             });
         }
 
-        // Mapeamento da Entidade SUBCATEGORIA (Como é usada dentro da Categoria)
+        // Mapeamento da Entidade SUBCATEGORIA (Objeto de Valor/Embutido)
         if (!BsonClassMap.IsClassMapRegistered(typeof(Subcategoria)))
         {
             BsonClassMap.RegisterClassMap<Subcategoria>(cm => { cm.AutoMap(); });
@@ -83,7 +76,6 @@ public class MongoDbContext
             {
                 cm.AutoMap();
                 cm.MapIdProperty(c => c.Id);
-                // Mapeia os Value Objects (Records) que estão dentro da transação
                 cm.MapProperty(c => c.Categoria).SetElementName("categoria");
                 cm.MapProperty(c => c.Subcategoria).SetElementName("subcategoria");
             });

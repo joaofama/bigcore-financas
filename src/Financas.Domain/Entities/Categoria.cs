@@ -1,9 +1,11 @@
 ﻿using Financas.Domain.Enums;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Financas.Domain.Entities;
 
 public class Categoria
 {
+    [BsonId]
     public Guid Id { get; private set; }
     public Guid UsuarioId { get; private set; }
     public string Nome { get; private set; } = string.Empty;
