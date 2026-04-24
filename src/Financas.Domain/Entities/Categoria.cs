@@ -36,10 +36,9 @@ public class Categoria
             Subcategorias = subcategorias;
     }
 
-    public void Atualizar(string nome, TipoTransacao tipo, string icone)
+    public void Atualizar(string nome, string icone)
     {
         Nome = nome;
-        Tipo = tipo;
         Icone = icone;
         DataAlteracao = DateTime.UtcNow;
     }

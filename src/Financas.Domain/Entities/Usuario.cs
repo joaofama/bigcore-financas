@@ -5,7 +5,7 @@ public class Usuario
     public Guid Id { get; private set; }
     public string Nome { get; private set; } = string.Empty;
     public string Email { get; private set; } = string.Empty;
-    public string SenhaHash { get; private set; } = string.Empty;
+    public string Senha { get; private set; } = string.Empty;
     public decimal SaldoCadastro { get; private set; }
     public bool Ativo { get; private set; }
     public DateTime DataCriacao { get; private set; }
@@ -13,12 +13,12 @@ public class Usuario
 
     protected Usuario() { }
 
-    public Usuario(string nome, string email, string senhaHash, decimal saldoCadastro)
+    public Usuario(string nome, string email, string senha, decimal saldoCadastro)
     {
         Id = Guid.NewGuid();
         Nome = nome;
         Email = email.ToLower().Trim();
-        SenhaHash = senhaHash;
+        Senha = senha;
         SaldoCadastro = saldoCadastro;
         Ativo = true;
         DataCriacao = DateTime.UtcNow;
@@ -30,9 +30,9 @@ public class Usuario
         DataAlteracao = DateTime.UtcNow;
     }
 
-    public void AtualizarSenha(string novoSenhaHash)
+    public void AtualizarSenha(string novoSenha)
     {
-        SenhaHash = novoSenhaHash;
+        Senha = novoSenha;
         DataAlteracao = DateTime.UtcNow;
     }
 

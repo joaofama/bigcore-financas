@@ -2,4 +2,7 @@
 
 namespace Financas.Application.Commands.Categorias;
 
-public record RemoverCategoriaCommand(Guid Id) : IRequest;
+public record RemoverCategoriaCommand(
+    Guid Id,
+    Guid UsuarioId
+) : IRequest; 

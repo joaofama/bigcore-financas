@@ -1,6 +1,6 @@
 ﻿using Financas.Application.Commands.Categorias;
 using Financas.Domain.Entities;
-using Financas.Domain.Interfaces;
+using Financas.Domain.Interfaces.Repositories;
 using MediatR;
 
 namespace Financas.Application.Handlers.Categorias;
@@ -16,7 +16,7 @@ public class CriarCategoriaHandler : IRequestHandler<CriarCategoriaCommand, Guid
 
     public async Task<Guid> Handle(CriarCategoriaCommand request, CancellationToken cancellationToken)
     {        
-        var existente = await _repository.ObterPorNomeAsync(request.Nome);
+        var existente = await _repository.ObterPorNomeAsync(request.Nome,request.UsuarioId);
         if (existente != null) throw new Exception("Esta categoria já existe.");
 
         var novaCategoria = new Categoria(

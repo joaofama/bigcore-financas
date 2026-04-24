@@ -20,19 +20,28 @@ public class MongoDbContext
         MapEntities();
     }
 
+    /// <summary>
+    /// Método genérico para obter qualquer coleção
+    /// </summary>
+    public IMongoCollection<T> GetCollection<T>(string name)
+    {
+        return _database.GetCollection<T>(name);
+    }
 
-    public IMongoCollection<Usuario> Usuarios => _database.GetCollection<Usuario>("Usuarios");
-    public IMongoCollection<Categoria> Categorias => _database.GetCollection<Categoria>("Categorias");
-    public IMongoCollection<Transacao> Transacoes => _database.GetCollection<Transacao>("Transacoes");
+    // Coleções 
+    public IMongoCollection<Usuario> Usuarios => GetCollection<Usuario>("Usuarios");
+    public IMongoCollection<Categoria> Categorias => GetCollection<Categoria>("Categorias");
+    public IMongoCollection<Transacao> Transacoes => GetCollection<Transacao>("Transacoes");
 
     private static void RegisterConventions()
     {
         var pack = new ConventionPack
         {
-            new CamelCaseElementNameConvention(), 
-            new IgnoreExtraElementsConvention(true) 
+            new CamelCaseElementNameConvention(),
+            new IgnoreExtraElementsConvention(true)
         };
 
+        // Verifica se já está registrado para evitar erros em Hot Reload
         if (ConventionRegistry.Lookup(typeof(CamelCaseElementNameConvention)) == null)
         {
             ConventionRegistry.Register("FinancasConventions", pack, t => true);
@@ -59,6 +68,7 @@ public class MongoDbContext
             {
                 cm.AutoMap();
                 cm.MapIdProperty(c => c.Id);
+                // Mapeia o campo interno para bater com o script seed.js
                 cm.MapField(c => c.Subcategorias).SetElementName("subcategorias");
             });
         }

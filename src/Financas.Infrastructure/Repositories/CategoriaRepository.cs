@@ -1,5 +1,5 @@
 ﻿using Financas.Domain.Entities;
-using Financas.Domain.Interfaces;
+using Financas.Domain.Interfaces.Repositories;
 using Financas.Infrastructure.Context;
 using MongoDB.Driver;
 
@@ -9,38 +9,54 @@ public class CategoriaRepository : ICategoriaRepository
 {
     private readonly IMongoCollection<Categoria> _categorias;
 
-    public CategoriaRepository(MongoDbContext contexto)
+    public CategoriaRepository(MongoDbContext context)
     {
-        _categorias = contexto.Categorias;
+        // Obtém a coleção de categorias do contexto do MongoDB
+        _categorias = context.GetCollection<Categoria>("Categorias");
     }
 
-    public async Task<IEnumerable<Categoria>> ObterTodasAsync()
+    public async Task<IEnumerable<Categoria>> ObterTodasPorUsuarioAsync(Guid usuarioId)
     {
-        return await _categorias.Find(_ => true).ToListAsync();
+        // Filtra apenas as categorias onde o UsuarioId coincide com o logado
+        return await _categorias
+            .Find(c => c.UsuarioId == usuarioId)
+            .ToListAsync();
     }
 
-    public async Task<Categoria?> ObterPorIdAsync(Guid id)
+    public async Task<Categoria?> ObterPorIdAsync(Guid id, Guid usuarioId)
     {
-        return await _categorias.Find(x => x.Id == id).FirstOrDefaultAsync();
+        // Filtro duplo: ID do documento E ID do dono
+        return await _categorias
+            .Find(c => c.Id == id && c.UsuarioId == usuarioId)
+            .FirstOrDefaultAsync();
     }
 
-    public async Task<Categoria?> ObterPorNomeAsync(string nome)
+    public async Task<Categoria?> ObterPorNomeAsync(string nome, Guid usuarioId)
     {
-        return await _categorias.Find(x => x.Nome == nome).FirstOrDefaultAsync();
+        // Busca por nome dentro do escopo do usuário (evita duplicidade pessoal)
+        return await _categorias
+            .Find(c => c.Nome == nome && c.UsuarioId == usuarioId)
+            .FirstOrDefaultAsync();
     }
 
     public async Task AdicionarAsync(Categoria categoria)
     {
+        // A entidade já deve chegar aqui com o UsuarioId preenchido pelo Handler
         await _categorias.InsertOneAsync(categoria);
     }
 
-    public async Task AtualizarAsync(Guid id, Categoria categoria)
+    public async Task AtualizarAsync(Categoria categoria)
     {
-        await _categorias.ReplaceOneAsync(x => x.Id == id, categoria);
+        // O ReplaceOne garante que só atualiza se o ID e o UsuarioId baterem no banco
+        await _categorias.ReplaceOneAsync(
+            c => c.Id == categoria.Id && c.UsuarioId == categoria.UsuarioId,
+            categoria
+        );
     }
 
-    public async Task RemoverAsync(Guid id)
+    public async Task RemoverAsync(Guid id, Guid usuarioId)
     {
-        await _categorias.DeleteOneAsync(x => x.Id == id);
+        // Exclusão segura: impossível deletar categoria de terceiros
+        await _categorias.DeleteOneAsync(c => c.Id == id && c.UsuarioId == usuarioId);
     }
 }

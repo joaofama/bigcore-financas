@@ -7,13 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.7" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.17.0" />
     <PackageReference Include="MongoDB.Driver" Version="3.8.0" />
     <PackageReference Include="StackExchange.Redis" Version="2.12.14" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Financas.Application\Financas.Application.csproj" />
     <ProjectReference Include="..\Financas.Domain\Financas.Domain.csproj" />
   </ItemGroup>
 

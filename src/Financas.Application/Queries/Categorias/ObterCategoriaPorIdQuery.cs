@@ -1,6 +1,9 @@
-﻿using Financas.Domain.Entities;
-using MediatR;
+﻿using MediatR;
+using Financas.Application.Responses.Categorias;
 
 namespace Financas.Application.Queries.Categorias;
 
-public record ObterCategoriaPorIdQuery(Guid Id) : IRequest<Categoria?>;
+public record ObterCategoriaPorIdQuery(
+    Guid Id,
+    Guid UsuarioId
+) : IRequest<CategoriaResponse?>;

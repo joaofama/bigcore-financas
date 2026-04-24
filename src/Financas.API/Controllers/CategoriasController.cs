@@ -1,13 +1,17 @@
-﻿using Financas.Application.Commands.Categorias;
+﻿using Financas.API.Requests.Categorias;
+using Financas.Application.Commands.Categorias;
 using Financas.Application.Queries.Categorias;
+using Financas.Application.Requests.Categorias;
+using Financas.Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Financas.API.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
-public class CategoriasController : ControllerBase
+[Authorize]
+public class CategoriasController : MainController
 {
     private readonly IMediator _mediator;
 
@@ -16,37 +20,36 @@ public class CategoriasController : ControllerBase
         _mediator = mediator;
     }
 
-    /// <summary>
-    /// Cria uma nova categoria
-    /// </summary>
-    [HttpPost]
-    public async Task<IActionResult> Criar([FromBody] CriarCategoriaCommand command)
+    [HttpPost("receitas")]
+    public async Task<IActionResult> CriarReceita([FromBody] CriarCategoriaRequest request)
     {
-        var id = await _mediator.Send(command);
+        // Monta o comando com 4 argumentos: Nome, Icone, Enum Tipo e Guid UsuarioId
+        var command = new CriarCategoriaCommand(UsuarioId, request.Nome, TipoTransacao.Receita, request.Icone);
 
-        // Retorna o status 201 (Created) e o local onde o recurso pode ser consultado
+        var id = await _mediator.Send(command);
         return CreatedAtAction(nameof(ObterPorId), new { id }, id);
     }
 
-    /// <summary>
-    /// Lista todas as categorias cadastradas
-    /// </summary>
+    [HttpPost("despesas")]
+    public async Task<IActionResult> CriarDespesa([FromBody] CriarCategoriaRequest request)
+    {
+        var command = new CriarCategoriaCommand(UsuarioId, request.Nome, TipoTransacao.Despesa, request.Icone);
+
+        var id = await _mediator.Send(command);
+        return CreatedAtAction(nameof(ObterPorId), new { id }, id);
+    }
+
     [HttpGet]
     public async Task<IActionResult> ObterTodas()
     {
-        var query = new ObterTodasCategoriasQuery();
-        var resultado = await _mediator.Send(query);
+        var resultado = await _mediator.Send(new ObterTodasCategoriasQuery(UsuarioId));
         return Ok(resultado);
     }
 
-    /// <summary>
-    /// Obtém uma categoria específica pelo seu Guid
-    /// </summary>
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> ObterPorId(Guid id)
     {
-        var query = new ObterCategoriaPorIdQuery(id);
-        var resultado = await _mediator.Send(query);
+        var resultado = await _mediator.Send(new ObterCategoriaPorIdQuery(id, UsuarioId));
 
         if (resultado == null)
             return NotFound(new { mensagem = "Categoria não encontrada." });
@@ -54,28 +57,24 @@ public class CategoriasController : ControllerBase
         return Ok(resultado);
     }
 
-    /// <summary>
-    /// Atualiza os dados de uma categoria existente
-    /// </summary>
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Atualizar(Guid id, [FromBody] AtualizarCategoriaCommand command)
+    public async Task<IActionResult> Atualizar(Guid id, [FromBody] AtualizarCategoriaRequest request)
     {
-        // Uma boa prática é garantir que o ID da URL seja o mesmo do comando
-        if (id != command.Id)
-            return BadRequest(new { mensagem = "O ID da URL não coincide com o ID do corpo da requisição." });
+        var command = new AtualizarCategoriaCommand(
+            id,
+            request.Nome,
+            request.Icone,
+            UsuarioId
+        );
 
         await _mediator.Send(command);
-        return NoContent(); // Retorna 204 sem conteúdo, padrão para atualizações com sucesso
+        return NoContent();
     }
 
-    /// <summary>
-    /// Remove (ou inativa) uma categoria
-    /// </summary>
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Remover(Guid id)
     {
-        var command = new RemoverCategoriaCommand(id);
-        await _mediator.Send(command);
+        await _mediator.Send(new RemoverCategoriaCommand(id, UsuarioId));
         return NoContent();
     }
 }
