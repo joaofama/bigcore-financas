@@ -1,11 +1,11 @@
-﻿using Financas.Domain.Enums;
-using MediatR;
+﻿using MediatR;
 
 namespace Financas.Application.Commands.Categorias;
 
 public record CriarCategoriaCommand(
     Guid UsuarioId,
     string Nome,
-    TipoTransacao Tipo,
-    string Icone
+    string Tipo, // "R" ou "D"
+    string Icone,
+    Guid? CategoriaPaiId // Se null = Pai, se preenchido = Filha
 ) : IRequest<Guid>;

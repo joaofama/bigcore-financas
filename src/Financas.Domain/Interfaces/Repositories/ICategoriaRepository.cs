@@ -21,5 +21,6 @@ namespace Financas.Domain.Interfaces.Repositories
 
         // Remove apenas se o ID e o dono coincidirem
         Task RemoverAsync(Guid id, Guid usuarioId);
+       
     }
 }

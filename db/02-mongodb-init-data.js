@@ -1,6 +1,6 @@
 db = db.getSiblingDB('FinancasDb');
 
-print("1/2 - Iniciando carga total de categorias e usuário de teste...");
+print("1/2 - Iniciando carga total de categorias (Modelo Plano) e usuário de teste...");
 
 var usuarioId = "11111111-1111-1111-1111-111111111111";
 
@@ -9,58 +9,84 @@ if (!db.Usuarios.findOne({ _id: usuarioId })) {
     db.Usuarios.insertOne({
         _id: usuarioId,
         nome: "Usuário de Teste",
-        email: "teste@financas.com",
-        senha: "Financas@123",        
+        email: "teste@teste.com",
+        senha: "teste@123",        
         ativo: true,
         dataCriacao: new ISODate()
     });
 }
 
-// Limpa categorias existentes para evitar duplicidade no seed
+// Limpa categorias existentes
 db.Categorias.deleteMany({ usuarioId: usuarioId });
 
 var categorias = [
-    // --- RECEITAS ---
+    // --- RECEITAS (tipo: "R") ---
     {
         _id: "a1111111-0000-0000-0000-000000000001",
         usuarioId: usuarioId,
         nome: "Salário",
+        tipo: "R",
         icone: "mdi-cash-main",
-        cor: "#2ECC71",
-        ativo: true,
-        subcategorias: [
-            { id: "a1111111-1000-0000-0000-000000000001", nome: "Adiantamento", ativo: true },
-            { id: "a1111111-2000-0000-0000-000000000001", nome: "Saldo Mensal", ativo: true },
-            { id: "a1111111-3000-0000-0000-000000000001", nome: "Bônus/PLR", ativo: true }
-        ]
+        categoriaPaiId: null,
+        ativo: true
     },
+    {
+        _id: "a1111111-1000-0000-0000-000000000001",
+        usuarioId: usuarioId,
+        nome: "Adiantamento",
+        tipo: "R",
+        icone: "mdi-cash-fast",
+        categoriaPaiId: "a1111111-0000-0000-0000-000000000001",
+        ativo: true
+    },
+    {
+        _id: "a1111111-2000-0000-0000-000000000001",
+        usuarioId: usuarioId,
+        nome: "Saldo Mensal",
+        tipo: "R",
+        icone: "mdi-cash-check",
+        categoriaPaiId: "a1111111-0000-0000-0000-000000000001",
+        ativo: true
+    },
+
+    // --- INVESTIMENTOS ---
     {
         _id: "a1111111-0000-0000-0000-000000000002",
         usuarioId: usuarioId,
         nome: "Investimentos",
+        tipo: "R",
         icone: "mdi-chart-line",
-        cor: "#27AE60",
-        ativo: true,
-        subcategorias: [
-            { id: "a1111111-1000-0000-0000-000000000002", nome: "Dividendos", ativo: true },
-            { id: "a1111111-2000-0000-0000-000000000002", nome: "Rendimentos CDB", ativo: true }
-        ]
+        categoriaPaiId: null,
+        ativo: true
+    },
+    {
+        _id: "a1111111-1000-0000-0000-000000000002",
+        usuarioId: usuarioId,
+        nome: "Dividendos",
+        tipo: "R",
+        icone: "mdi-bank-transfer-in",
+        categoriaPaiId: "a1111111-0000-0000-0000-000000000002",
+        ativo: true
     },
 
-    // --- DESPESAS: MORADIA ---
+    // --- DESPESAS (tipo: "D"): MORADIA ---
     {
         _id: "b2222222-0000-0000-0000-000000000001",
         usuarioId: usuarioId,
         nome: "Moradia",
+        tipo: "D",
         icone: "mdi-home",
-        cor: "#3498DB",
-        ativo: true,
-        subcategorias: [
-            { id: "b2222222-1000-0000-0000-000000000001", nome: "Aluguel/Condomínio", ativo: true },
-            { id: "b2222222-2000-0000-0000-000000000001", nome: "Luz/Água/Gás", ativo: true },
-            { id: "b2222222-3000-0000-0000-000000000001", nome: "Internet/TV", ativo: true },
-            { id: "b2222222-4000-0000-0000-000000000001", nome: "Manutenção/Reforma", ativo: true }
-        ]
+        categoriaPaiId: null,
+        ativo: true
+    },
+    {
+        _id: "b2222222-1000-0000-0000-000000000001",
+        usuarioId: usuarioId,
+        nome: "Aluguel/Condomínio",
+        tipo: "D",
+        icone: "mdi-home-city",
+        categoriaPaiId: "b2222222-0000-0000-0000-000000000001",
+        ativo: true
     },
 
     // --- DESPESAS: ALIMENTAÇÃO ---
@@ -68,14 +94,28 @@ var categorias = [
         _id: "b2222222-0000-0000-0000-000000000002",
         usuarioId: usuarioId,
         nome: "Alimentação",
+        tipo: "D",
         icone: "mdi-food",
-        cor: "#E67E22",
-        ativo: true,
-        subcategorias: [
-            { id: "b2222222-1000-0000-0000-000000000002", nome: "Supermercado", ativo: true },
-            { id: "b2222222-2000-0000-0000-000000000002", nome: "Restaurantes/Ifood", ativo: true },
-            { id: "b2222222-3000-0000-0000-000000000002", nome: "Lanches/Padaria", ativo: true }
-        ]
+        categoriaPaiId: null,
+        ativo: true
+    },
+    {
+        _id: "b2222222-1000-0000-0000-000000000002",
+        usuarioId: usuarioId,
+        nome: "Supermercado",
+        tipo: "D",
+        icone: "mdi-cart",
+        categoriaPaiId: "b2222222-0000-0000-0000-000000000002",
+        ativo: true
+    },
+    {
+        _id: "b2222222-2000-0000-0000-000000000002",
+        usuarioId: usuarioId,
+        nome: "Restaurantes/Ifood",
+        tipo: "D",
+        icone: "mdi-silverware-fork-knife",
+        categoriaPaiId: "b2222222-0000-0000-0000-000000000002",
+        ativo: true
     },
 
     // --- DESPESAS: TRANSPORTE ---
@@ -83,30 +123,19 @@ var categorias = [
         _id: "b2222222-0000-0000-0000-000000000003",
         usuarioId: usuarioId,
         nome: "Transporte",
+        tipo: "D",
         icone: "mdi-car",
-        cor: "#95A5A6",
-        ativo: true,
-        subcategorias: [
-            { id: "b2222222-1000-0000-0000-000000000003", nome: "Combustível", ativo: true },
-            { id: "b2222222-2000-0000-0000-000000000003", nome: "Uber/Transporte Público", ativo: true },
-            { id: "b2222222-3000-0000-0000-000000000003", nome: "Seguro/IPVA", ativo: true },
-            { id: "b2222222-4000-0000-0000-000000000003", nome: "Manutenção Veículo", ativo: true }
-        ]
+        categoriaPaiId: null,
+        ativo: true
     },
-
-    // --- DESPESAS: SAÚDE ---
     {
-        _id: "b2222222-0000-0000-0000-000000000004",
+        _id: "b2222222-1000-0000-0000-000000000003",
         usuarioId: usuarioId,
-        nome: "Saúde",
-        icone: "mdi-heart-pulse",
-        cor: "#E74C3C",
-        ativo: true,
-        subcategorias: [
-            { id: "b2222222-1000-0000-0000-000000000004", nome: "Plano de Saúde", ativo: true },
-            { id: "b2222222-2000-0000-0000-000000000004", nome: "Farmácia", ativo: true },
-            { id: "b2222222-3000-0000-0000-000000000004", nome: "Consultas/Exames", ativo: true }
-        ]
+        nome: "Combustível",
+        tipo: "D",
+        icone: "mdi-gas-station",
+        categoriaPaiId: "b2222222-0000-0000-0000-000000000003",
+        ativo: true
     },
 
     // --- DESPESAS: LAZER ---
@@ -114,14 +143,19 @@ var categorias = [
         _id: "b2222222-0000-0000-0000-000000000005",
         usuarioId: usuarioId,
         nome: "Lazer",
+        tipo: "D",
         icone: "mdi-movie",
-        cor: "#F1C40F",
-        ativo: true,
-        subcategorias: [
-            { id: "b2222222-1000-0000-0000-000000000005", nome: "Viagens", ativo: true },
-            { id: "b2222222-2000-0000-0000-000000000005", nome: "Streaming (Netflix/Spotify)", ativo: true },
-            { id: "b2222222-3000-0000-0000-000000000005", nome: "Hobby/Diversão", ativo: true }
-        ]
+        categoriaPaiId: null,
+        ativo: true
+    },
+    {
+        _id: "b2222222-2000-0000-0000-000000000005",
+        usuarioId: usuarioId,
+        nome: "Streaming (Netflix/Spotify)",
+        tipo: "D",
+        icone: "mdi-play-circle",
+        categoriaPaiId: "b2222222-0000-0000-0000-000000000005",
+        ativo: true
     }
 ];
 

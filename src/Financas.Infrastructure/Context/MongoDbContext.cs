@@ -68,15 +68,8 @@ public class MongoDbContext
             {
                 cm.AutoMap();
                 cm.MapIdProperty(c => c.Id);
-                // Mapeia o campo interno para bater com o script seed.js
-                cm.MapField(c => c.Subcategorias).SetElementName("subcategorias");
+                // Removido o mapeamento de Subcategorias pois adotamos o modelo Flat
             });
-        }
-
-        // Mapeamento da Entidade SUBCATEGORIA (Objeto de Valor/Embutido)
-        if (!BsonClassMap.IsClassMapRegistered(typeof(Subcategoria)))
-        {
-            BsonClassMap.RegisterClassMap<Subcategoria>(cm => { cm.AutoMap(); });
         }
 
         // Mapeamento da Entidade TRANSACAO
@@ -86,8 +79,8 @@ public class MongoDbContext
             {
                 cm.AutoMap();
                 cm.MapIdProperty(c => c.Id);
-                cm.MapProperty(c => c.Categoria).SetElementName("categoria");
-                cm.MapProperty(c => c.Subcategoria).SetElementName("subcategoria");
+                // Removidos os mapeamentos de Categoria e Subcategoria aninhados.
+                // Agora ela usa apenas propriedades nativas (CategoriaId) que o AutoMap resolve sozinho.
             });
         }
     }

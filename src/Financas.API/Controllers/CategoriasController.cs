@@ -1,8 +1,6 @@
 ﻿using Financas.API.Requests.Categorias;
 using Financas.Application.Commands.Categorias;
 using Financas.Application.Queries.Categorias;
-using Financas.Application.Requests.Categorias;
-using Financas.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,23 +18,43 @@ public class CategoriasController : MainController
         _mediator = mediator;
     }
 
-    [HttpPost("receitas")]
-    public async Task<IActionResult> CriarReceita([FromBody] CriarCategoriaRequest request)
+    [HttpPost]
+    public async Task<IActionResult> Criar([FromBody] CriarCategoriaRequest request)
     {
-        // Monta o comando com 4 argumentos: Nome, Icone, Enum Tipo e Guid UsuarioId
-        var command = new CriarCategoriaCommand(UsuarioId, request.Nome, TipoTransacao.Receita, request.Icone);
+        var command = new CriarCategoriaCommand(
+            UsuarioId,
+            request.Nome,
+            request.Tipo,
+            request.Icone,
+            request.CategoriaPaiId
+        );
 
         var id = await _mediator.Send(command);
+
         return CreatedAtAction(nameof(ObterPorId), new { id }, id);
     }
 
-    [HttpPost("despesas")]
-    public async Task<IActionResult> CriarDespesa([FromBody] CriarCategoriaRequest request)
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Atualizar(Guid id, [FromBody] AtualizarCategoriaRequest request)
     {
-        var command = new CriarCategoriaCommand(UsuarioId, request.Nome, TipoTransacao.Despesa, request.Icone);
+        var command = new AtualizarCategoriaCommand(
+            id,
+            UsuarioId,
+            request.Nome,
+            request.Icone,
+            request.Tipo,
+            request.CategoriaPaiId
+        );
 
-        var id = await _mediator.Send(command);
-        return CreatedAtAction(nameof(ObterPorId), new { id }, id);
+        await _mediator.Send(command);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Remover(Guid id)
+    {
+        await _mediator.Send(new RemoverCategoriaCommand(id, UsuarioId));
+        return NoContent();
     }
 
     [HttpGet]
@@ -55,26 +73,5 @@ public class CategoriasController : MainController
             return NotFound(new { mensagem = "Categoria não encontrada." });
 
         return Ok(resultado);
-    }
-
-    [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Atualizar(Guid id, [FromBody] AtualizarCategoriaRequest request)
-    {
-        var command = new AtualizarCategoriaCommand(
-            id,
-            request.Nome,
-            request.Icone,
-            UsuarioId
-        );
-
-        await _mediator.Send(command);
-        return NoContent();
-    }
-
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Remover(Guid id)
-    {
-        await _mediator.Send(new RemoverCategoriaCommand(id, UsuarioId));
-        return NoContent();
     }
 }

@@ -6,6 +6,7 @@ using Financas.Infrastructure.Configurations;
 using Financas.Infrastructure.Context;
 using Financas.Infrastructure.Repositories;
 using Financas.Infrastructure.Services;
+using Financas.API.Middlewares; // <-- Adicionado o namespace do Middleware
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -41,7 +42,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 
-// --- 5. Configuração do Swagger (Substituindo o Scalar/OpenApi nativo) ---
+// --- 5. Configuração do Swagger ---
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -97,6 +98,10 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 // --- 7. Pipeline de Execução (Middlewares) ---
+
+// Middleware Global de Exceções (Deve ser o primeiro para capturar tudo!)
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     // Ativa o Swagger UI

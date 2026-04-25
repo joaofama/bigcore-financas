@@ -14,22 +14,43 @@ public class ObterCategoriaPorIdQueryHandler : IRequestHandler<ObterCategoriaPor
         _repository = repository;
     }
 
-    public async Task<CategoriaResponse?> Handle(ObterCategoriaPorIdQuery request, CancellationToken cancellationToken)
+    public async Task<CategoriaResponse?> Handle(ObterCategoriaPorIdQuery request, CancellationToken ct)
     {
-        // 1. Busca no banco usando o ID da categoria E o ID do usuário (Segurança/Multitenancy)
+        // 1. Busca a categoria principal solicitada
         var categoria = await _repository.ObterPorIdAsync(request.Id, request.UsuarioId);
 
-        // 2. Se não encontrar (ou não pertencer ao usuário), retorna null para o Controller tratar como 404
-        if (categoria == null)
-            return null;
+        if (categoria == null) return null;
 
-        // 3. Mapeia a Entidade de Domínio para a Response (DTO)
-        // Isso isola o seu banco de dados da sua API externa
+        // 2. Prepara a lista de subcategorias (vazia por padrão)
+        List<CategoriaResponse> subcategorias = new();
+
+        // 3. Se for uma categoria principal (Pai), carregamos seus filhos para enviar junto
+        if (categoria.CategoriaPaiId == null)
+        {
+            var todas = await _repository.ObterTodasPorUsuarioAsync(request.UsuarioId);
+
+            subcategorias = todas
+                .Where(c => c.CategoriaPaiId == categoria.Id)
+                .OrderBy(c => c.Nome)
+                .Select(s => new CategoriaResponse(
+                    s.Id,
+                    s.Nome,
+                    s.Tipo,  
+                    s.Icone,
+                    s.CategoriaPaiId,
+                    new List<CategoriaResponse>() 
+                ))
+                .ToList();
+        }
+
+        // 4. Retorna a categoria formatada para a API
         return new CategoriaResponse(
             categoria.Id,
             categoria.Nome,
+            categoria.Tipo,   
             categoria.Icone,
-            categoria.Tipo.ToString() // Converte o Enum (Receita/Despesa) para texto
+            categoria.CategoriaPaiId,
+            subcategorias
         );
     }
 }

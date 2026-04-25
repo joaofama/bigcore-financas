@@ -1,22 +1,29 @@
-﻿using Financas.Domain.Enums;
-using Financas.Domain.ValueObjects;
+﻿using MongoDB.Bson.Serialization.Attributes;
 
 namespace Financas.Domain.Entities;
 
 public class Transacao
 {
+    [BsonId]
     public Guid Id { get; private set; }
-    public Guid UsuarioId { get; private set; }
-    public string Descricao { get; private set; } = string.Empty;
-    public decimal Valor { get; private set; }
-    public DateTime Data { get; private set; }
-    public TipoTransacao Tipo { get; private set; }
-    public bool Ativo { get; private set; }
-    public DateTime DataCriacao { get; private set; }
-    public DateTime? DataAlteracao { get; private set; }
 
-    public CategoriaInfo Categoria { get; private set; } = null!;
-    public SubcategoriaInfo? Subcategoria { get; private set; }
+    public Guid UsuarioId { get; private set; }
+
+    public string Descricao { get; private set; } = string.Empty;
+
+    public decimal Valor { get; private set; }
+
+    public DateTime Data { get; private set; }
+
+    public string Tipo { get; private set; } = string.Empty; // "R" ou "D"
+
+    public Guid CategoriaId { get; private set; }
+
+    public bool Pago { get; private set; }
+
+    public DateTime DataCriacao { get; private set; }
+
+    public DateTime? DataAlteracao { get; private set; }
 
     protected Transacao() { }
 
@@ -25,19 +32,19 @@ public class Transacao
         string descricao,
         decimal valor,
         DateTime data,
-        TipoTransacao tipo,
-        CategoriaInfo categoria,
-        SubcategoriaInfo? subcategoria = null)
+        string tipo,
+        Guid categoriaId,
+        bool pago = true,
+        Guid? id = null)
     {
-        Id = Guid.NewGuid();
+        Id = id ?? Guid.NewGuid();
         UsuarioId = usuarioId;
         Descricao = descricao;
         Valor = valor;
         Data = data;
-        Tipo = tipo;
-        Categoria = categoria;
-        Subcategoria = subcategoria;
-        Ativo = true;
+        Tipo = tipo.ToUpper();
+        CategoriaId = categoriaId;
+        Pago = pago;
         DataCriacao = DateTime.UtcNow;
     }
 
@@ -45,20 +52,22 @@ public class Transacao
         string descricao,
         decimal valor,
         DateTime data,
-        CategoriaInfo categoria,
-        SubcategoriaInfo? subcategoria)
+        string tipo,
+        Guid categoriaId,
+        bool pago)
     {
         Descricao = descricao;
         Valor = valor;
         Data = data;
-        Categoria = categoria;
-        Subcategoria = subcategoria;
-        DataAlteracao = DateTime.UtcNow; // Importante para o controle do Cache no Redis
+        Tipo = tipo.ToUpper();
+        CategoriaId = categoriaId;
+        Pago = pago;
+        DataAlteracao = DateTime.UtcNow;
     }
 
-    public void Inativar()
+    public void AlternarStatusPagamento()
     {
-        Ativo = false;
+        Pago = !Pago;
         DataAlteracao = DateTime.UtcNow;
     }
 }
