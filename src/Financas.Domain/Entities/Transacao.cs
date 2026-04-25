@@ -6,35 +6,31 @@ public class Transacao
 {
     [BsonId]
     public Guid Id { get; private set; }
-
     public Guid UsuarioId { get; private set; }
-
     public string Descricao { get; private set; } = string.Empty;
-
     public decimal Valor { get; private set; }
-
     public DateTime Data { get; private set; }
+    public string Tipo { get; private set; } = string.Empty;
 
-    public string Tipo { get; private set; } = string.Empty; // "R" ou "D"
-
+    // --- DADOS DA CATEGORIA (FILHA) ---
     public Guid CategoriaId { get; private set; }
+    public string CategoriaNome { get; private set; } = string.Empty;
+    public string CategoriaIcone { get; private set; } = string.Empty;
 
-    public bool Pago { get; private set; }
+    // --- DADOS DA CATEGORIA PAI (OPCIONAL) ---
+    public Guid? CategoriaPaiId { get; private set; }
+    public string? CategoriaPaiNome { get; private set; }
+    public string? CategoriaPaiIcone { get; private set; }
 
     public DateTime DataCriacao { get; private set; }
-
     public DateTime? DataAlteracao { get; private set; }
 
     protected Transacao() { }
 
     public Transacao(
-        Guid usuarioId,
-        string descricao,
-        decimal valor,
-        DateTime data,
-        string tipo,
-        Guid categoriaId,
-        bool pago = true,
+        Guid usuarioId, string descricao, decimal valor, DateTime data, string tipo,
+        Guid categoriaId, string categoriaNome, string categoriaIcone,
+        Guid? categoriaPaiId, string? categoriaPaiNome, string? categoriaPaiIcone,
         Guid? id = null)
     {
         Id = id ?? Guid.NewGuid();
@@ -43,31 +39,36 @@ public class Transacao
         Valor = valor;
         Data = data;
         Tipo = tipo.ToUpper();
+
         CategoriaId = categoriaId;
-        Pago = pago;
+        CategoriaNome = categoriaNome;
+        CategoriaIcone = categoriaIcone;
+
+        CategoriaPaiId = categoriaPaiId;
+        CategoriaPaiNome = categoriaPaiNome;
+        CategoriaPaiIcone = categoriaPaiIcone;
+
         DataCriacao = DateTime.UtcNow;
     }
 
     public void Atualizar(
-        string descricao,
-        decimal valor,
-        DateTime data,
-        string tipo,
-        Guid categoriaId,
-        bool pago)
+        string descricao, decimal valor, DateTime data, string tipo,
+        Guid categoriaId, string categoriaNome, string categoriaIcone,
+        Guid? categoriaPaiId, string? categoriaPaiNome, string? categoriaPaiIcone)
     {
         Descricao = descricao;
         Valor = valor;
         Data = data;
         Tipo = tipo.ToUpper();
-        CategoriaId = categoriaId;
-        Pago = pago;
-        DataAlteracao = DateTime.UtcNow;
-    }
 
-    public void AlternarStatusPagamento()
-    {
-        Pago = !Pago;
+        CategoriaId = categoriaId;
+        CategoriaNome = categoriaNome;
+        CategoriaIcone = categoriaIcone;
+
+        CategoriaPaiId = categoriaPaiId;
+        CategoriaPaiNome = categoriaPaiNome;
+        CategoriaPaiIcone = categoriaPaiIcone;
+
         DataAlteracao = DateTime.UtcNow;
     }
 }
