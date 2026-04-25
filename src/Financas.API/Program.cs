@@ -6,7 +6,7 @@ using Financas.Infrastructure.Configurations;
 using Financas.Infrastructure.Context;
 using Financas.Infrastructure.Repositories;
 using Financas.Infrastructure.Services;
-using Financas.API.Middlewares; // <-- Adicionado o namespace do Middleware
+using Financas.API.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -17,7 +17,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- 1. Carregamento de Configurações ---
+// --- 1. Carregamento de Configurações (.env e Variáveis de Ambiente) ---
 Env.Load();
 builder.Configuration.Sources.Clear();
 builder.Configuration.AddEnvironmentVariables();
@@ -31,25 +31,36 @@ builder.Services.Configure<RedisSettings>(builder.Configuration.GetSection(nameo
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
 
 // --- 4. Injeção de Dependência (Application & Infrastructure) ---
-builder.Services.AddApplication();
+builder.Services.AddApplication(); // MediatR, AutoMapper, Validators
 builder.Services.AddSingleton<MongoDbContext>();
-builder.Services.AddSingleton<RedisContext>();
 
+// Configuração do Redis Nativo (IDistributedCache)
+var redisSettings = builder.Configuration.GetSection(nameof(RedisSettings)).Get<RedisSettings>();
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = redisSettings?.ConnectionString;
+    options.InstanceName = "Financas_";
+});
+
+// Registro do Contexto e Serviços de Cache
+builder.Services.AddSingleton<RedisContext>(); // Contexto para acesso direto se necessário
+builder.Services.AddScoped<ICacheService, RedisCacheService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+
+// Registro de Repositórios
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
 builder.Services.AddScoped<ITransacaoRepository, TransacaoRepository>();
-builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 
-// --- 5. Configuração do Swagger ---
+// --- 5. Configuração do Swagger com Suporte a JWT ---
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Finanças API", Version = "v1" });
 
-    // Configuração do botão "Authorize" para JWT
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header usando o esquema Bearer. Exemplo: \"Authorization: Bearer {token}\"",
@@ -73,7 +84,7 @@ builder.Services.AddSwaggerGen(c =>
 
 // --- 6. Configuração de Autenticação JWT ---
 var jwtSettings = builder.Configuration.GetSection(nameof(JwtSettings)).Get<JwtSettings>();
-var key = Encoding.UTF8.GetBytes(jwtSettings?.Secret ?? throw new InvalidOperationException("JWT Secret não configurado."));
+var key = Encoding.UTF8.GetBytes(jwtSettings?.Secret ?? throw new InvalidOperationException("JWT Secret não configurado no .env"));
 
 builder.Services.AddAuthentication(options =>
 {
@@ -90,7 +101,8 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings.Issuer,
         ValidAudience = jwtSettings.Audience,
-        IssuerSigningKey = new SymmetricSecurityKey(key)
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ClockSkew = TimeSpan.Zero
     };
 });
 
@@ -100,12 +112,11 @@ var app = builder.Build();
 
 // --- 7. Pipeline de Execução (Middlewares) ---
 
-// Middleware Global de Exceções (Deve ser o primeiro para capturar tudo!)
+// Middleware Global de Exceções
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
-    // Ativa o Swagger UI
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
@@ -115,7 +126,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Importante: Authentication ANTES de Authorization
+// Ordem obrigatória: Autenticação antes de Autorização
 app.UseAuthentication();
 app.UseAuthorization();
 
