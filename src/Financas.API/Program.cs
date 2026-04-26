@@ -1,18 +1,20 @@
 using DotNetEnv;
+using Financas.API.Middlewares;
 using Financas.Application;
 using Financas.Domain.Interfaces.Repositories;
 using Financas.Domain.Interfaces.Services;
 using Financas.Infrastructure.Configurations;
 using Financas.Infrastructure.Context;
+using Financas.Infrastructure.Hubs;
 using Financas.Infrastructure.Repositories;
 using Financas.Infrastructure.Services;
-using Financas.API.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
+using StackExchange.Redis;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,22 +32,44 @@ builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection(nam
 builder.Services.Configure<RedisSettings>(builder.Configuration.GetSection(nameof(RedisSettings)));
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(JwtSettings)));
 
-// --- 4. Injeção de Dependência (Application & Infrastructure) ---
-builder.Services.AddApplication(); // MediatR, AutoMapper, Validators
+var redisSettings = builder.Configuration.GetSection(nameof(RedisSettings)).Get<RedisSettings>();
+
+// --- 4. CORS (Essencial para o SignalR no navegador) ---
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("DefaultPolicy", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000") // Adicione aqui a URL do seu Front-end
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // OBRIGATÓRIO para o SignalR com Auth
+    });
+});
+
+// --- 5. Injeção de Dependência (Application & Infrastructure) ---
+builder.Services.AddApplication();
 builder.Services.AddSingleton<MongoDbContext>();
 
-// Configuração do Redis Nativo (IDistributedCache)
-var redisSettings = builder.Configuration.GetSection(nameof(RedisSettings)).Get<RedisSettings>();
+// Configuração do Redis (Cache)
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = redisSettings?.ConnectionString;
     options.InstanceName = "Financas_";
 });
 
-// Registro do Contexto e Serviços de Cache
-builder.Services.AddSingleton<RedisContext>(); // Contexto para acesso direto se necessário
+// Registro de Serviços de Cache e Token
+builder.Services.AddSingleton<RedisContext>();
 builder.Services.AddScoped<ICacheService, RedisCacheService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+
+// --- CONFIGURAÇÃO SIGNALR COM REDIS BACKPLANE ---
+builder.Services.AddSignalR()
+    .AddStackExchangeRedis(redisSettings?.ConnectionString ?? throw new InvalidOperationException("Redis não configurado"), options =>
+    {
+        options.Configuration.ChannelPrefix = RedisChannel.Literal("Financas_SignalR");
+    });
+
+builder.Services.AddScoped<INotificationService, SignalRService>();
 
 // Registro de Repositórios
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
@@ -56,21 +80,19 @@ builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 
-// --- 5. Configuração do Swagger com Suporte a JWT ---
+// --- 6. Configuração do Swagger com Suporte a JWT ---
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Finanças API", Version = "v1" });
-
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header usando o esquema Bearer. Exemplo: \"Authorization: Bearer {token}\"",
+        Description = "JWT Authorization header usando o esquema Bearer.",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
-
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -83,9 +105,9 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// --- 6. Configuração de Autenticação JWT ---
+// --- 7. Configuração de Autenticação JWT ---
 var jwtSettings = builder.Configuration.GetSection(nameof(JwtSettings)).Get<JwtSettings>();
-var key = Encoding.UTF8.GetBytes(jwtSettings?.Secret ?? throw new InvalidOperationException("JWT Secret não configurado no .env"));
+var key = Encoding.UTF8.GetBytes(jwtSettings?.Secret ?? throw new InvalidOperationException("JWT Secret não configurado"));
 
 builder.Services.AddAuthentication(options =>
 {
@@ -105,15 +127,29 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(key),
         ClockSkew = TimeSpan.Zero
     };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// --- 7. Pipeline de Execução (Middlewares) ---
+// --- 8. Pipeline de Execução (Middlewares) ---
 
-// Middleware Global de Exceções
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -125,12 +161,17 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+// O Cors deve vir antes da Autenticação e do MapHub
+app.UseCors("DefaultPolicy");
+
 app.UseHttpsRedirection();
 
-// Ordem obrigatória: Autenticação antes de Autorização
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Mapeamento do Hub 
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();
