@@ -24,6 +24,11 @@ public class ExceptionHandlingMiddleware
             // Captura APENAS os erros do FluentValidation (Regras de Negócio)
             await HandleValidationExceptionAsync(context, ex);
         }
+        catch (UnauthorizedAccessException ex) 
+        {
+            // Captura erros de login/acesso negado
+            await HandleUnauthorizedExceptionAsync(context, ex);
+        }
         catch (Exception ex)
         {
             // Captura qualquer outro erro inesperado (Bugs)
@@ -36,7 +41,6 @@ public class ExceptionHandlingMiddleware
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = StatusCodes.Status400BadRequest;
 
-        // Agrupa os erros por campo (ex: "Nome": ["O nome é obrigatório", "Mínimo 3 caracteres"])
         var errors = exception.Errors
             .GroupBy(e => e.PropertyName)
             .ToDictionary(
@@ -51,7 +55,21 @@ public class ExceptionHandlingMiddleware
             Erros = errors
         };
 
-        // Retorna o JSON formatado
+        return context.Response.WriteAsync(JsonSerializer.Serialize(response));
+    }
+
+    private static Task HandleUnauthorizedExceptionAsync(HttpContext context, UnauthorizedAccessException exception)
+    {
+        context.Response.ContentType = "application/json";
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+
+        var response = new
+        {
+            Titulo = "Acesso Negado",
+            Status = context.Response.StatusCode,
+            Detalhe = exception.Message
+        };
+
         return context.Response.WriteAsync(JsonSerializer.Serialize(response));
     }
 
@@ -64,7 +82,7 @@ public class ExceptionHandlingMiddleware
         {
             Titulo = "Ocorreu um erro interno no servidor.",
             Status = context.Response.StatusCode,
-            Detalhe = exception.Message // Dica: Em produção, você pode esconder esse "Detalhe" por segurança
+            Detalhe = exception.Message
         };
 
         return context.Response.WriteAsync(JsonSerializer.Serialize(response));

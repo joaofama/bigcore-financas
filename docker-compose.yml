@@ -3,11 +3,13 @@ services:
     container_name: financas-api-app
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: src/Financas.API/Dockerfile
+    restart: always
     ports:
       - "${App_ExternalPort}:${App_InternalPort}"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:${App_InternalPort}
       - ASPNETCORE_HTTP_PORTS=${App_InternalPort}      
       - MongoDbSettings__Host=${MongoDbSettings__Host}
       - MongoDbSettings__Port=${MongoDbSettings__Port}
@@ -16,10 +18,24 @@ services:
       - MongoDbSettings__DatabaseName=${MongoDbSettings__DatabaseName}      
       - RedisSettings__Host=${RedisSettings__Host}
       - RedisSettings__Port=${RedisSettings__Port}
-      - RedisSettings__Password=${RedisSettings__Password}     
+      - RedisSettings__Password=${RedisSettings__Password}
+      - JwtSettings__Secret=${JwtSettings__Secret}
+      - JwtSettings__Issuer=${JwtSettings__Issuer}
+      - JwtSettings__Audience=${JwtSettings__Audience}
     depends_on:
       - mongo
       - redis
+
+  ui:
+    container_name: financas-ui
+    build:
+      context: ./ui
+      args:
+        - VITE_API_URL=${VITE_API_URL}
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
 
   mongo:
     image: mongo:latest
@@ -34,6 +50,7 @@ services:
       - MONGO_INITDB_DATABASE=${MongoDbSettings__DatabaseName}
     volumes:
       - mongodb_data:/data/db
+      - ./db:/docker-entrypoint-initdb.d 
 
   redis:
     image: redis:latest
@@ -55,7 +72,6 @@ services:
       - ME_CONFIG_MONGODB_PORT=${MongoDbSettings__Port}
       - ME_CONFIG_MONGODB_ADMINUSERNAME=${MongoDbSettings__User}
       - ME_CONFIG_MONGODB_ADMINPASSWORD=${MongoDbSettings__Password}
-      - VCAP_APP_PORT=${MongoExpress_InternalPort}
     depends_on:
       - mongo
 
@@ -65,7 +81,6 @@ services:
     ports:
       - "${RedisCommander_ExternalPort}:${RedisCommander_InternalPort}"
     environment:
-      - PORT=${RedisCommander_InternalPort}
       - REDIS_HOSTS=local:${RedisSettings__Host}:${RedisSettings__Port}:0:${RedisSettings__Password}
     depends_on:
       - redis

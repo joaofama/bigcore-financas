@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using Financas.Application.Commands.Transacoes;
 
-namespace Financas.Application.Validations.Transacoes;
+namespace Financas.Application.Validators.Transacoes;
 
 public class RemoverTransacaoCommandValidator : AbstractValidator<RemoverTransacaoCommand>
 {

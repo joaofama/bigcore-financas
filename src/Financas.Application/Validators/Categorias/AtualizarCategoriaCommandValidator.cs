@@ -2,7 +2,7 @@
 using FluentValidation;
 using Financas.Application.Commands.Categorias;
 
-namespace Financas.Application.Validations.Categorias;
+namespace Financas.Application.Validators.Categorias;
 
 public class AtualizarCategoriaCommandValidator : AbstractValidator<AtualizarCategoriaCommand>
 {

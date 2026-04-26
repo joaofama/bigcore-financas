@@ -37,14 +37,15 @@ var redisSettings = builder.Configuration.GetSection(nameof(RedisSettings)).Get<
 // --- 4. CORS (Essencial para o SignalR no navegador) ---
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("DefaultPolicy", policy =>
+    options.AddPolicy("CorsPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:3000") // Adicione aqui a URL do seu Front-end
+        policy.WithOrigins("http://localhost:3000", "http://localhost:5000") // 3000 = Vue UI | 5000 = Swagger
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials(); // OBRIGATÓRIO para o SignalR com Auth
+              .AllowCredentials(); 
     });
 });
+
 
 // --- 5. Injeção de Dependência (Application & Infrastructure) ---
 builder.Services.AddApplication();
@@ -84,7 +85,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Finanças API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Financas API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header usando o esquema Bearer.",
@@ -152,14 +153,14 @@ var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Finanças API v1");
     });
-}
+//}
 
 // O Cors deve vir antes da Autenticação e do MapHub
 app.UseCors("DefaultPolicy");

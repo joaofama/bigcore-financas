@@ -6,22 +6,22 @@ public class Usuario
     public string Nome { get; private set; } = string.Empty;
     public string Email { get; private set; } = string.Empty;
     public string Senha { get; private set; } = string.Empty;
-    public decimal SaldoCadastro { get; private set; }
+    public decimal SaldoInicial { get; private set; }
     public bool Ativo { get; private set; }
-    public DateTime DataCriacao { get; private set; }
+    public DateTime DataCadastro { get; private set; }
     public DateTime? DataAlteracao { get; private set; }
 
     protected Usuario() { }
 
-    public Usuario(string nome, string email, string senha, decimal saldoCadastro)
+    public Usuario(string nome, string email, string senha, decimal saldoInicial)
     {
         Id = Guid.NewGuid();
         Nome = nome;
         Email = email.ToLower().Trim();
         Senha = senha;
-        SaldoCadastro = saldoCadastro;
+        SaldoInicial = saldoInicial;
         Ativo = true;
-        DataCriacao = DateTime.UtcNow;
+        DataCadastro = DateTime.UtcNow;
     }
 
     public void AtualizarPerfil(string nome)

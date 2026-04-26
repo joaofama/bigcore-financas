@@ -1,11 +1,15 @@
 ﻿using Financas.API.Controllers;
 using Financas.Application.Commands.Transacoes;
 using Financas.Application.Queries.Transacoes;
+using Financas.Application.Requests.Transacoes;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Financas.Api.Controllers;
 
+[Route("api/[controller]")]
+[Authorize]
 public class TransacoesController : MainController
 {
     private readonly IMediator _mediator;
@@ -16,7 +20,7 @@ public class TransacoesController : MainController
     }
 
     [HttpPost]
-    public async Task<ActionResult<Guid>> Criar([FromBody] CriarTransacaoCommand request)
+    public async Task<ActionResult<Guid>> Criar([FromBody] CriarTransacaoRequest request)
     {
         var command = new CriarTransacaoCommand(
             UsuarioId,
@@ -32,12 +36,8 @@ public class TransacoesController : MainController
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult> Atualizar(Guid id, [FromBody] AtualizarTransacaoCommand request)
+    public async Task<ActionResult> Atualizar(Guid id, [FromBody] AtualizarTransacaoRequest request)
     {
-        if (id != request.Id)
-            return BadRequest("O ID da rota não coincide com o ID do corpo.");
-
-        // Criamos o comando de atualização com o UsuarioId seguro
         var command = new AtualizarTransacaoCommand(
             id,
             UsuarioId,

@@ -11,8 +11,10 @@ if (!db.Usuarios.findOne({ _id: usuarioId })) {
         nome: "Usuário de Teste",
         email: "teste@teste.com",
         senha: "teste@123",        
+        saldoInicial: NumberDecimal("0.00"),
         ativo: true,
-        dataCriacao: new ISODate()
+        dataCadastro: new ISODate(),
+        dataAlteracao: null // Faz todo o sentido: acabou de ser criado, nunca foi alterado.
     });
 }
 

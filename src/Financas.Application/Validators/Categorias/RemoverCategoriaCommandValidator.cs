@@ -2,7 +2,7 @@
 using Financas.Application.Commands.Categorias;
 using Financas.Domain.Interfaces.Repositories;
 
-namespace Financas.Application.Validations.Categorias;
+namespace Financas.Application.Validators.Categorias;
 
 public class RemoverCategoriaCommandValidator : AbstractValidator<RemoverCategoriaCommand>
 {
