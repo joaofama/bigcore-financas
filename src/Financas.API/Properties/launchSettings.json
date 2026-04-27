@@ -2,45 +2,65 @@
   "profiles": {
     "http": {
       "commandName": "Project",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
       "dotnetRunMessages": true,
-      "applicationUrl": "http://localhost:5272"
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+
+        // Configurações de Conexão (Redirecionam para o Docker local)
+        "MongoDbSettings__Host": "localhost",
+        "MongoDbSettings__Port": "27017",
+        "MongoDbSettings__User": "admin",
+        "MongoDbSettings__Password": "admin123",
+        "MongoDbSettings__DatabaseName": "FinancasDb",
+
+        "RedisSettings__Host": "localhost",
+        "RedisSettings__Port": "6379",
+        "RedisSettings__Password": "admin123",
+
+        // Configurações de Segurança (JWT)
+        "JwtSettings__Secret": "7f83b1627ff1ae7db94475e7a96446a84d4376c761922c22976785675e07662c",
+        "JwtSettings__Issuer": "FinancasApp",
+        "JwtSettings__Audience": "FinancasUsers",
+        "JwtSettings__ExpirationInHours": "8"
+      }
     },
     "https": {
       "commandName": "Project",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
       "dotnetRunMessages": true,
-      "applicationUrl": "https://localhost:7074;http://localhost:5272"
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "https://localhost:7074;http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "MongoDbSettings__Host": "localhost",
+        "MongoDbSettings__Port": "27017",
+        "MongoDbSettings__User": "admin",
+        "MongoDbSettings__Password": "admin123",
+        "MongoDbSettings__DatabaseName": "FinancasDb",
+
+        "RedisSettings__Host": "localhost",
+        "RedisSettings__Port": "6379",
+        "RedisSettings__Password": "admin123",
+
+        "JwtSettings__Secret": "7f83b1627ff1ae7db94475e7a96446a84d4376c761922c22976785675e07662c",
+        "JwtSettings__Issuer": "FinancasApp",
+        "JwtSettings__Audience": "FinancasUsers",
+        "JwtSettings__ExpirationInHours": "8"
+      }
     },
     "Container (Dockerfile)": {
       "commandName": "Docker",
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
       "environmentVariables": {
         "ASPNETCORE_HTTPS_PORTS": "8081",
         "ASPNETCORE_HTTP_PORTS": "8080"
       },
       "publishAllPorts": true,
       "useSSL": true
-    },
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
     }
   },
-  "$schema": "https://json.schemastore.org/launchsettings.json",
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:61441/",
-      "sslPort": 44338
-    }
-  }
+  "$schema": "https://json.schemastore.org/launchsettings.json"
 }

@@ -2,7 +2,8 @@ db = db.getSiblingDB('FinancasDb');
 
 print("1/2 - Iniciando carga total de categorias (Modelo Plano) e usuário de teste...");
 
-var usuarioId = "11111111-1111-1111-1111-111111111111";
+// Usando a função UUID para salvar como BinData (Guid nativo)
+var usuarioId = UUID("11111111-1111-1111-1111-111111111111");
 
 // Inserção do Usuário
 if (!db.Usuarios.findOne({ _id: usuarioId })) {
@@ -14,7 +15,7 @@ if (!db.Usuarios.findOne({ _id: usuarioId })) {
         saldoInicial: NumberDecimal("0.00"),
         ativo: true,
         dataCadastro: new ISODate(),
-        dataAlteracao: null // Faz todo o sentido: acabou de ser criado, nunca foi alterado.
+        dataAlteracao: null 
     });
 }
 
@@ -24,7 +25,7 @@ db.Categorias.deleteMany({ usuarioId: usuarioId });
 var categorias = [
     // --- RECEITAS (tipo: "R") ---
     {
-        _id: "a1111111-0000-0000-0000-000000000001",
+        _id: UUID("a1111111-0000-0000-0000-000000000001"),
         usuarioId: usuarioId,
         nome: "Salário",
         tipo: "R",
@@ -33,27 +34,27 @@ var categorias = [
         ativo: true
     },
     {
-        _id: "a1111111-1000-0000-0000-000000000001",
+        _id: UUID("a1111111-1000-0000-0000-000000000001"),
         usuarioId: usuarioId,
         nome: "Adiantamento",
         tipo: "R",
         icone: "mdi-cash-fast",
-        categoriaPaiId: "a1111111-0000-0000-0000-000000000001",
+        categoriaPaiId: UUID("a1111111-0000-0000-0000-000000000001"),
         ativo: true
     },
     {
-        _id: "a1111111-2000-0000-0000-000000000001",
+        _id: UUID("a1111111-2000-0000-0000-000000000001"),
         usuarioId: usuarioId,
         nome: "Saldo Mensal",
         tipo: "R",
         icone: "mdi-cash-check",
-        categoriaPaiId: "a1111111-0000-0000-0000-000000000001",
+        categoriaPaiId: UUID("a1111111-0000-0000-0000-000000000001"),
         ativo: true
     },
 
     // --- INVESTIMENTOS ---
     {
-        _id: "a1111111-0000-0000-0000-000000000002",
+        _id: UUID("a1111111-0000-0000-0000-000000000002"),
         usuarioId: usuarioId,
         nome: "Investimentos",
         tipo: "R",
@@ -62,18 +63,18 @@ var categorias = [
         ativo: true
     },
     {
-        _id: "a1111111-1000-0000-0000-000000000002",
+        _id: UUID("a1111111-1000-0000-0000-000000000002"),
         usuarioId: usuarioId,
         nome: "Dividendos",
         tipo: "R",
         icone: "mdi-bank-transfer-in",
-        categoriaPaiId: "a1111111-0000-0000-0000-000000000002",
+        categoriaPaiId: UUID("a1111111-0000-0000-0000-000000000002"),
         ativo: true
     },
 
     // --- DESPESAS (tipo: "D"): MORADIA ---
     {
-        _id: "b2222222-0000-0000-0000-000000000001",
+        _id: UUID("b2222222-0000-0000-0000-000000000001"),
         usuarioId: usuarioId,
         nome: "Moradia",
         tipo: "D",
@@ -82,18 +83,18 @@ var categorias = [
         ativo: true
     },
     {
-        _id: "b2222222-1000-0000-0000-000000000001",
+        _id: UUID("b2222222-1000-0000-0000-000000000001"),
         usuarioId: usuarioId,
         nome: "Aluguel/Condomínio",
         tipo: "D",
         icone: "mdi-home-city",
-        categoriaPaiId: "b2222222-0000-0000-0000-000000000001",
+        categoriaPaiId: UUID("b2222222-0000-0000-0000-000000000001"),
         ativo: true
     },
 
     // --- DESPESAS: ALIMENTAÇÃO ---
     {
-        _id: "b2222222-0000-0000-0000-000000000002",
+        _id: UUID("b2222222-0000-0000-0000-000000000002"),
         usuarioId: usuarioId,
         nome: "Alimentação",
         tipo: "D",
@@ -102,27 +103,27 @@ var categorias = [
         ativo: true
     },
     {
-        _id: "b2222222-1000-0000-0000-000000000002",
+        _id: UUID("b2222222-1000-0000-0000-000000000002"),
         usuarioId: usuarioId,
         nome: "Supermercado",
         tipo: "D",
         icone: "mdi-cart",
-        categoriaPaiId: "b2222222-0000-0000-0000-000000000002",
+        categoriaPaiId: UUID("b2222222-0000-0000-0000-000000000002"),
         ativo: true
     },
     {
-        _id: "b2222222-2000-0000-0000-000000000002",
+        _id: UUID("b2222222-2000-0000-0000-000000000002"),
         usuarioId: usuarioId,
         nome: "Restaurantes/Ifood",
         tipo: "D",
         icone: "mdi-silverware-fork-knife",
-        categoriaPaiId: "b2222222-0000-0000-0000-000000000002",
+        categoriaPaiId: UUID("b2222222-0000-0000-0000-000000000002"),
         ativo: true
     },
 
     // --- DESPESAS: TRANSPORTE ---
     {
-        _id: "b2222222-0000-0000-0000-000000000003",
+        _id: UUID("b2222222-0000-0000-0000-000000000003"),
         usuarioId: usuarioId,
         nome: "Transporte",
         tipo: "D",
@@ -131,18 +132,18 @@ var categorias = [
         ativo: true
     },
     {
-        _id: "b2222222-1000-0000-0000-000000000003",
+        _id: UUID("b2222222-1000-0000-0000-000000000003"),
         usuarioId: usuarioId,
         nome: "Combustível",
         tipo: "D",
         icone: "mdi-gas-station",
-        categoriaPaiId: "b2222222-0000-0000-0000-000000000003",
+        categoriaPaiId: UUID("b2222222-0000-0000-0000-000000000003"),
         ativo: true
     },
 
     // --- DESPESAS: LAZER ---
     {
-        _id: "b2222222-0000-0000-0000-000000000005",
+        _id: UUID("b2222222-0000-0000-0000-000000000005"),
         usuarioId: usuarioId,
         nome: "Lazer",
         tipo: "D",
@@ -151,12 +152,12 @@ var categorias = [
         ativo: true
     },
     {
-        _id: "b2222222-2000-0000-0000-000000000005",
+        _id: UUID("b2222222-2000-0000-0000-000000000005"),
         usuarioId: usuarioId,
         nome: "Streaming (Netflix/Spotify)",
         tipo: "D",
         icone: "mdi-play-circle",
-        categoriaPaiId: "b2222222-0000-0000-0000-000000000005",
+        categoriaPaiId: UUID("b2222222-0000-0000-0000-000000000005"),
         ativo: true
     }
 ];

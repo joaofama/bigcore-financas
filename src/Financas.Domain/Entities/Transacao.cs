@@ -4,7 +4,6 @@ namespace Financas.Domain.Entities;
 
 public class Transacao
 {
-    [BsonId]
     public Guid Id { get; private set; }
     public Guid UsuarioId { get; private set; }
     public string Descricao { get; private set; } = string.Empty;
@@ -25,6 +24,8 @@ public class Transacao
     public DateTime DataCriacao { get; private set; }
     public DateTime? DataAlteracao { get; private set; }
 
+
+    [BsonConstructor]
     protected Transacao() { }
 
     public Transacao(
@@ -36,7 +37,7 @@ public class Transacao
         Id = id ?? Guid.NewGuid();
         UsuarioId = usuarioId;
         Descricao = descricao;
-        Valor = valor;
+        Valor = Math.Round(valor, 2); 
         Data = data;
         Tipo = tipo.ToUpper();
 
@@ -57,7 +58,7 @@ public class Transacao
         Guid? categoriaPaiId, string? categoriaPaiNome, string? categoriaPaiIcone)
     {
         Descricao = descricao;
-        Valor = valor;
+        Valor = Math.Round(valor, 2); 
         Data = data;
         Tipo = tipo.ToUpper();
 

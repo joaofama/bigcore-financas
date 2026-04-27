@@ -28,26 +28,26 @@ public class ObterTodasCategoriasQueryHandler : IRequestHandler<ObterTodasCatego
         // 2. Cache Miss: Busca a lista do MongoDB
         var categoriasFlat = await _repository.ObterTodasPorUsuarioAsync(request.UsuarioId);
 
-        // 3. Monta a Hierarquia (Árvore) para preencher o parâmetro 'Subcategorias'
+        // 3. Monta a Hierarquia (Árvore) respeitando a ordem: Id, Nome, Tipo, Icone...
         var response = categoriasFlat
-            .Where(c => c.CategoriaPaiId == null) 
+            .Where(c => c.CategoriaPaiId == null)
             .Select(pai => new CategoriaResponse(
                 pai.Id,
                 pai.Nome,
-                pai.Icone,
-                pai.Tipo,
+                pai.Tipo,  
+                pai.Icone, 
                 pai.CategoriaPaiId,
                 categoriasFlat
-                    .Where(filho => filho.CategoriaPaiId == pai.Id) // Buscamos os filhos desta categoria específica
+                    .Where(filho => filho.CategoriaPaiId == pai.Id)
                     .Select(filho => new CategoriaResponse(
                         filho.Id,
                         filho.Nome,
-                        filho.Icone,
-                        filho.Tipo,
+                        filho.Tipo,  
+                        filho.Icone, 
                         filho.CategoriaPaiId,
-                        new List<CategoriaResponse>() // Filhos de segundo nível vazios por enquanto
+                        new List<CategoriaResponse>()
                     ))
-                    .ToList() 
+                    .ToList()
             )).ToList();
 
         // 4. Salva no Redis a árvore completa

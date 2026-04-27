@@ -1,9 +1,12 @@
 ﻿using Financas.Domain.Entities;
 using Financas.Infrastructure.Configurations;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
+using System.Reflection;
 
 namespace Financas.Infrastructure.Context;
 
@@ -20,15 +23,8 @@ public class MongoDbContext
         MapEntities();
     }
 
-    /// <summary>
-    /// Método genérico para obter qualquer coleção
-    /// </summary>
-    public IMongoCollection<T> GetCollection<T>(string name)
-    {
-        return _database.GetCollection<T>(name);
-    }
+    public IMongoCollection<T> GetCollection<T>(string name) => _database.GetCollection<T>(name);
 
-    // Coleções 
     public IMongoCollection<Usuario> Usuarios => GetCollection<Usuario>("Usuarios");
     public IMongoCollection<Categoria> Categorias => GetCollection<Categoria>("Categorias");
     public IMongoCollection<Transacao> Transacoes => GetCollection<Transacao>("Transacoes");
@@ -41,46 +37,65 @@ public class MongoDbContext
             new IgnoreExtraElementsConvention(true)
         };
 
-        // Verifica se já está registrado para evitar erros em Hot Reload
-        if (ConventionRegistry.Lookup(typeof(CamelCaseElementNameConvention)) == null)
-        {
-            ConventionRegistry.Register("FinancasConventions", pack, t => true);
-        }
+        ConventionRegistry.Remove("FinancasConventions");
+        ConventionRegistry.Register("FinancasConventions", pack, t => true);
     }
 
     private static void MapEntities()
     {
-        // Mapeamento da Entidade USUARIO
+        // Serializadores Padronizados
+        var guidSerializer = new GuidSerializer(GuidRepresentation.Standard);
+        var nullableGuidSerializer = new NullableSerializer<Guid>(new GuidSerializer(GuidRepresentation.Standard));
+        var decimalSerializer = new DecimalSerializer(BsonType.Decimal128);
+
+        // Mapeamento USUARIO
         if (!BsonClassMap.IsClassMapRegistered(typeof(Usuario)))
         {
             BsonClassMap.RegisterClassMap<Usuario>(cm =>
             {
                 cm.AutoMap();
-                cm.MapIdProperty(c => c.Id);
-                cm.SetIgnoreExtraElements(true);
+
+                // Força o construtor sem parâmetros (mesmo que seja invisível/padrão)
+                var ctor = typeof(Usuario).GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, Type.EmptyTypes, null);
+                if (ctor != null) cm.MapConstructor(ctor);
+
+                cm.MapIdProperty(c => c.Id).SetSerializer(guidSerializer);
+                cm.MapMember(c => c.SaldoInicial).SetSerializer(decimalSerializer);
             });
         }
 
-        // Mapeamento da Entidade CATEGORIA
+        // Mapeamento CATEGORIA
         if (!BsonClassMap.IsClassMapRegistered(typeof(Categoria)))
         {
             BsonClassMap.RegisterClassMap<Categoria>(cm =>
             {
                 cm.AutoMap();
-                cm.MapIdProperty(c => c.Id);
-                // Removido o mapeamento de Subcategorias pois adotamos o modelo Flat
+                
+                var ctor = typeof(Categoria).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, Type.EmptyTypes, null);
+                if (ctor != null) cm.MapConstructor(ctor);
+
+                cm.MapIdProperty(c => c.Id).SetSerializer(guidSerializer);
+                cm.MapMember(c => c.UsuarioId).SetSerializer(guidSerializer);
+                cm.MapMember(c => c.CategoriaPaiId).SetSerializer(nullableGuidSerializer);
             });
         }
 
-        // Mapeamento da Entidade TRANSACAO
+        // Mapeamento TRANSACAO
         if (!BsonClassMap.IsClassMapRegistered(typeof(Transacao)))
         {
             BsonClassMap.RegisterClassMap<Transacao>(cm =>
             {
                 cm.AutoMap();
-                cm.MapIdProperty(c => c.Id);
-                // Removidos os mapeamentos de Categoria e Subcategoria aninhados.
-                // Agora ela usa apenas propriedades nativas (CategoriaId) que o AutoMap resolve sozinho.
+
+                // Força o uso do construtor protected sem argumentos
+                var ctor = typeof(Transacao).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, Type.EmptyTypes, null);
+                if (ctor != null) cm.MapConstructor(ctor);
+
+                cm.MapIdProperty(c => c.Id).SetSerializer(guidSerializer);
+                cm.MapMember(c => c.UsuarioId).SetSerializer(guidSerializer);
+                cm.MapMember(c => c.CategoriaId).SetSerializer(guidSerializer);
+                cm.MapMember(c => c.CategoriaPaiId).SetSerializer(nullableGuidSerializer);
+                cm.MapMember(c => c.Valor).SetSerializer(decimalSerializer);
             });
         }
     }

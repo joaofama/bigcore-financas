@@ -24,7 +24,7 @@ public class ObterCategoriaPorIdQueryHandler : IRequestHandler<ObterCategoriaPor
         // 2. Prepara a lista de subcategorias (vazia por padrão)
         List<CategoriaResponse> subcategorias = new();
 
-        // 3. Se for uma categoria principal (Pai), carregamos seus filhos para enviar junto
+        // 3. Se for uma categoria principal (Pai), carregamos seus filhos
         if (categoria.CategoriaPaiId == null)
         {
             var todas = await _repository.ObterTodasPorUsuarioAsync(request.UsuarioId);
@@ -36,9 +36,9 @@ public class ObterCategoriaPorIdQueryHandler : IRequestHandler<ObterCategoriaPor
                     s.Id,
                     s.Nome,
                     s.Tipo,  
-                    s.Icone,
+                    s.Icone, 
                     s.CategoriaPaiId,
-                    new List<CategoriaResponse>() 
+                    new List<CategoriaResponse>()
                 ))
                 .ToList();
         }
@@ -47,8 +47,8 @@ public class ObterCategoriaPorIdQueryHandler : IRequestHandler<ObterCategoriaPor
         return new CategoriaResponse(
             categoria.Id,
             categoria.Nome,
-            categoria.Tipo,   
-            categoria.Icone,
+            categoria.Tipo,  
+            categoria.Icone, 
             categoria.CategoriaPaiId,
             subcategorias
         );

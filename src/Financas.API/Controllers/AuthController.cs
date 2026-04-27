@@ -1,4 +1,5 @@
 ﻿using Financas.Application.Commands.Auth;
+using Financas.Application.Requests.Auth; // Referência para o Request (DTO)
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,9 +14,11 @@ public class AuthController : ControllerBase
     public AuthController(IMediator mediator) => _mediator = mediator;
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginCommand command)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
+        var command = new LoginCommand(request.Email, request.Senha);
         var response = await _mediator.Send(command);
+
         return Ok(response);
     }
 }

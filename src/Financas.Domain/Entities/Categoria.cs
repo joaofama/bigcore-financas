@@ -4,27 +4,27 @@ namespace Financas.Domain.Entities;
 
 public class Categoria
 {
-    [BsonId]
     public Guid Id { get; private set; }
     public Guid UsuarioId { get; private set; }
     public string Nome { get; private set; } = string.Empty;
-    public string Tipo { get; private set; } = string.Empty; 
+    public string Tipo { get; private set; } = string.Empty;
     public string Icone { get; private set; } = string.Empty;
     public bool Ativo { get; private set; }
     public DateTime? DataAlteracao { get; private set; }
     public Guid? CategoriaPaiId { get; private set; }
 
+    // Construtor vazio para o MongoDB (Reidratação)
     protected Categoria() { }
 
+    // Construtor público para o Handler (Criação)
     public Categoria(
         Guid usuarioId,
         string nome,
         string tipo,
         string icone,
-        Guid? categoriaPaiId = null,
-        Guid? id = null)
+        Guid? categoriaPaiId = null)
     {
-        Id = id ?? Guid.NewGuid();
+        Id = Guid.NewGuid(); 
         UsuarioId = usuarioId;
         Nome = nome;
         Tipo = tipo.ToUpper();

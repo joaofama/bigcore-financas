@@ -1,4 +1,6 @@
-﻿namespace Financas.Domain.Entities;
+﻿using MongoDB.Bson.Serialization.Attributes;
+
+namespace Financas.Domain.Entities;
 
 public class Usuario
 {
@@ -11,34 +13,7 @@ public class Usuario
     public DateTime DataCadastro { get; private set; }
     public DateTime? DataAlteracao { get; private set; }
 
+    
+    [BsonConstructor]
     protected Usuario() { }
-
-    public Usuario(string nome, string email, string senha, decimal saldoInicial)
-    {
-        Id = Guid.NewGuid();
-        Nome = nome;
-        Email = email.ToLower().Trim();
-        Senha = senha;
-        SaldoInicial = saldoInicial;
-        Ativo = true;
-        DataCadastro = DateTime.UtcNow;
-    }
-
-    public void AtualizarPerfil(string nome)
-    {
-        Nome = nome;
-        DataAlteracao = DateTime.UtcNow;
-    }
-
-    public void AtualizarSenha(string novoSenha)
-    {
-        Senha = novoSenha;
-        DataAlteracao = DateTime.UtcNow;
-    }
-
-    public void Inativar()
-    {
-        Ativo = false;
-        DataAlteracao = DateTime.UtcNow;
-    }
 }
