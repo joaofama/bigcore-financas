@@ -8,29 +8,35 @@ namespace Financas.Infrastructure.Repositories;
 public class DashboardRepository : IDashboardRepository
 {
     private readonly IMongoCollection<Transacao> _collection;
+    private readonly IMongoCollection<Usuario> _userCollection;
 
     public DashboardRepository(MongoDbContext context)
     {
-        // Usamos a mesma coleção de transações, mas focados em agregação de leitura
         _collection = context.GetCollection<Transacao>("Transacoes");
+        _userCollection = context.GetCollection<Usuario>("Usuarios");
     }
 
     public async Task<decimal> ObterSaldoAteDataAsync(Guid usuarioId, DateTime dataLimite)
     {
+        // 1. Busca o Saldo Inicial que o usuário definiu no cadastro
+        var userFilter = Builders<Usuario>.Filter.Eq(u => u.Id, usuarioId);
+        var usuario = await _userCollection.Find(userFilter).FirstOrDefaultAsync();
+        var saldoDoCadastro = usuario?.SaldoInicial ?? 0;
+
+        // 2. Filtra as transações ocorridas ANTES da data limite (meses anteriores)
         var filter = Builders<Transacao>.Filter.And(
             Builders<Transacao>.Filter.Eq(t => t.UsuarioId, usuarioId),
             Builders<Transacao>.Filter.Lt(t => t.Data, dataLimite)
         );
 
-        // Busca apenas os campos necessários (Valor e Tipo) para economizar banda
         var projection = Builders<Transacao>.Projection.Include(t => t.Valor).Include(t => t.Tipo);
-
         var transacoes = await _collection.Find(filter).Project<Transacao>(projection).ToListAsync();
 
         var receitas = transacoes.Where(t => t.Tipo == "R").Sum(t => t.Valor);
         var despesas = transacoes.Where(t => t.Tipo == "D").Sum(t => t.Valor);
 
-        return receitas - despesas;
+        // 3. O saldo inicial do mês é: Saldo do Cadastro + (Receitas - Despesas de meses anteriores)
+        return saldoDoCadastro + (receitas - despesas);
     }
 
     public async Task<(decimal Receitas, decimal Despesas)> ObterResumoMensalAsync(Guid usuarioId, int mes, int ano)
@@ -58,13 +64,12 @@ public class DashboardRepository : IDashboardRepository
         var inicioMes = new DateTime(ano, mes, 1);
         var fimMes = inicioMes.AddMonths(1).AddTicks(-1);
 
-        // Pipeline de Agregação do MongoDB: Filtro -> Agrupamento -> Ordenação
         var pipeline = _collection.Aggregate()
             .Match(t => t.UsuarioId == usuarioId &&
                         t.Data >= inicioMes &&
                         t.Data <= fimMes &&
                         t.Tipo == "D")
-            .Group(t => t.CategoriaPaiNome ?? t.CategoriaNome, // Agrupa pela categoria pai ou pela própria se for principal
+            .Group(t => t.CategoriaPaiNome ?? t.CategoriaNome,
                 g => new
                 {
                     Categoria = g.Key,

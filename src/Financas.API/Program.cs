@@ -11,9 +11,6 @@ using Financas.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
 using StackExchange.Redis;
 using System.Text;
 
@@ -25,7 +22,9 @@ builder.Configuration.Sources.Clear();
 builder.Configuration.AddEnvironmentVariables();
 
 // --- 2. Configurações Globais MongoDB ---
-BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+// O driver v3.0+ não usa mais o BsonDefaults. 
+// A configuração agora é feita via Serializer direto no MapEntities que está no MongoDbContext.
+MongoDbContext.Configure();
 
 // --- 3. Mapeamento de Configurações (Options Pattern) ---
 builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection(nameof(MongoDbSettings)));
@@ -34,12 +33,12 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(
 
 var redisSettings = builder.Configuration.GetSection(nameof(RedisSettings)).Get<RedisSettings>();
 
-// --- 4. CORS  ---
+// --- 4. CORS ---
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DefaultPolicy", policy =>
     {
-        policy.AllowAnyOrigin() 
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -86,7 +85,7 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Financas API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header usando o esquema Bearer.",
+        Description = "JWT Authorization header usando o esquema Bearer. Exemplo: 'Bearer 12345abcdef'",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
@@ -106,7 +105,8 @@ builder.Services.AddSwaggerGen(c =>
 
 // --- 7. Configuração de Autenticação JWT ---
 var jwtSettings = builder.Configuration.GetSection(nameof(JwtSettings)).Get<JwtSettings>();
-var key = Encoding.UTF8.GetBytes(jwtSettings?.Secret ?? throw new InvalidOperationException("JWT Secret não configurado"));
+var jwtSecret = jwtSettings?.Secret ?? throw new InvalidOperationException("JWT Secret não configurado");
+var key = Encoding.UTF8.GetBytes(jwtSecret);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -148,9 +148,7 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 // --- 8. Pipeline de Execução (Middlewares) ---
-
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
@@ -158,16 +156,12 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Finanças API v1");
 });
 
-
-// O Cors deve vir antes da Autenticação e do MapHub
 app.UseCors("DefaultPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-// Mapeamento do Hub 
 app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();

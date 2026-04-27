@@ -24,20 +24,28 @@ public class Transacao
     public DateTime DataCriacao { get; private set; }
     public DateTime? DataAlteracao { get; private set; }
 
-
+    // Construtor utilizado pelo MongoDB para reconstruir o objeto do banco
     [BsonConstructor]
     protected Transacao() { }
 
+    // Construtor utilizado pela aplicação para criar novas transações
     public Transacao(
-        Guid usuarioId, string descricao, decimal valor, DateTime data, string tipo,
-        Guid categoriaId, string categoriaNome, string categoriaIcone,
-        Guid? categoriaPaiId, string? categoriaPaiNome, string? categoriaPaiIcone,
-        Guid? id = null)
+        Guid usuarioId,
+        string descricao,
+        decimal valor,
+        DateTime data,
+        string tipo,
+        Guid categoriaId,
+        string categoriaNome,
+        string categoriaIcone,
+        Guid? categoriaPaiId,
+        string? categoriaPaiNome,
+        string? categoriaPaiIcone)
     {
-        Id = id ?? Guid.NewGuid();
+        Id = Guid.NewGuid(); // O ID é gerado sempre aqui na criação
         UsuarioId = usuarioId;
         Descricao = descricao;
-        Valor = Math.Round(valor, 2); 
+        Valor = Math.Round(valor, 2);
         Data = data;
         Tipo = tipo.ToUpper();
 
@@ -53,12 +61,19 @@ public class Transacao
     }
 
     public void Atualizar(
-        string descricao, decimal valor, DateTime data, string tipo,
-        Guid categoriaId, string categoriaNome, string categoriaIcone,
-        Guid? categoriaPaiId, string? categoriaPaiNome, string? categoriaPaiIcone)
+        string descricao,
+        decimal valor,
+        DateTime data,
+        string tipo,
+        Guid categoriaId,
+        string categoriaNome,
+        string categoriaIcone,
+        Guid? categoriaPaiId,
+        string? categoriaPaiNome,
+        string? categoriaPaiIcone)
     {
         Descricao = descricao;
-        Valor = Math.Round(valor, 2); 
+        Valor = Math.Round(valor, 2);
         Data = data;
         Tipo = tipo.ToUpper();
 

@@ -18,9 +18,6 @@ public class MongoDbContext
     {
         var client = new MongoClient(settings.Value.ConnectionString);
         _database = client.GetDatabase(settings.Value.DatabaseName);
-
-        RegisterConventions();
-        MapEntities();
     }
 
     public IMongoCollection<T> GetCollection<T>(string name) => _database.GetCollection<T>(name);
@@ -28,6 +25,16 @@ public class MongoDbContext
     public IMongoCollection<Usuario> Usuarios => GetCollection<Usuario>("Usuarios");
     public IMongoCollection<Categoria> Categorias => GetCollection<Categoria>("Categorias");
     public IMongoCollection<Transacao> Transacoes => GetCollection<Transacao>("Transacoes");
+
+    /// <summary>
+    /// Configuração estática global para o MongoDB. 
+    /// Deve ser chamada apenas uma vez na inicialização da API (Program.cs).
+    /// </summary>
+    public static void Configure()
+    {
+        RegisterConventions();
+        MapEntities();
+    }
 
     private static void RegisterConventions()
     {
@@ -37,25 +44,26 @@ public class MongoDbContext
             new IgnoreExtraElementsConvention(true)
         };
 
+        // Garante que as convenções de camelCase sejam aplicadas a todas as coleções
         ConventionRegistry.Remove("FinancasConventions");
         ConventionRegistry.Register("FinancasConventions", pack, t => true);
     }
 
     private static void MapEntities()
     {
-        // Serializadores Padronizados
+        // Serializadores Padronizados para GUIDs e Decimais (essenciais para Windows/MongoDB)
         var guidSerializer = new GuidSerializer(GuidRepresentation.Standard);
         var nullableGuidSerializer = new NullableSerializer<Guid>(new GuidSerializer(GuidRepresentation.Standard));
         var decimalSerializer = new DecimalSerializer(BsonType.Decimal128);
 
-        // Mapeamento USUARIO
+        // --- Mapeamento USUARIO ---
         if (!BsonClassMap.IsClassMapRegistered(typeof(Usuario)))
         {
             BsonClassMap.RegisterClassMap<Usuario>(cm =>
             {
                 cm.AutoMap();
 
-                // Força o construtor sem parâmetros (mesmo que seja invisível/padrão)
+                // Mapeia o construtor padrão (necessário para reconstrução do objeto)
                 var ctor = typeof(Usuario).GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, Type.EmptyTypes, null);
                 if (ctor != null) cm.MapConstructor(ctor);
 
@@ -64,13 +72,13 @@ public class MongoDbContext
             });
         }
 
-        // Mapeamento CATEGORIA
+        // --- Mapeamento CATEGORIA ---
         if (!BsonClassMap.IsClassMapRegistered(typeof(Categoria)))
         {
             BsonClassMap.RegisterClassMap<Categoria>(cm =>
             {
                 cm.AutoMap();
-                
+
                 var ctor = typeof(Categoria).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, Type.EmptyTypes, null);
                 if (ctor != null) cm.MapConstructor(ctor);
 
@@ -80,14 +88,13 @@ public class MongoDbContext
             });
         }
 
-        // Mapeamento TRANSACAO
+        // --- Mapeamento TRANSACAO ---
         if (!BsonClassMap.IsClassMapRegistered(typeof(Transacao)))
         {
             BsonClassMap.RegisterClassMap<Transacao>(cm =>
             {
                 cm.AutoMap();
 
-                // Força o uso do construtor protected sem argumentos
                 var ctor = typeof(Transacao).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, Type.EmptyTypes, null);
                 if (ctor != null) cm.MapConstructor(ctor);
 
