@@ -1,0 +1,36 @@
+# Dependências (Nunca suba esta pasta!)
+node_modules/
+
+# Build (Arquivos gerados para produção)
+dist/
+dist-ssr/
+*.local
+
+# Logs do NPM/Yarn/PNPM
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor/IDE (Específicos da pasta UI)
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Arquivos de Ambiente (Segurança)
+.env
+.env.*
+!.env.example
+
+# Cache do Vite e ferramentas de teste
+.vite/
+.turbo/
+coverage/
+
+# TypeScript
+*.tsbuildinfo
