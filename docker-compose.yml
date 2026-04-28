@@ -15,19 +15,27 @@ services:
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:${App_InternalPort}
-      - ASPNETCORE_HTTP_PORTS=${App_InternalPort}      
+      - ASPNETCORE_HTTP_PORTS=${App_InternalPort}
+      
+      # --- MongoDB Config ---
       - MongoDbSettings__Host=${MongoDbSettings__Host}
       - MongoDbSettings__Port=${MongoDbSettings__Port}
       - MongoDbSettings__User=${MongoDbSettings__User}
       - MongoDbSettings__Password=${MongoDbSettings__Password}
-      - MongoDbSettings__DatabaseName=${MongoDbSettings__DatabaseName}      
+      - MongoDbSettings__DatabaseName=${MongoDbSettings__DatabaseName}
+      
+      # --- Redis Config (Corrigido e Completo) ---
       - RedisSettings__Host=${RedisSettings__Host}
       - RedisSettings__Port=${RedisSettings__Port}
       - RedisSettings__Password=${RedisSettings__Password}
+      - RedisSettings__InstanceName=${RedisSettings__InstanceName}
+      - RedisSettings__CacheExpirationInHours=${RedisSettings__CacheExpirationInHours}
+      
+      # --- JWT Config ---
       - JwtSettings__Secret=${JwtSettings__Secret}
       - JwtSettings__Issuer=${JwtSettings__Issuer}
       - JwtSettings__Audience=${JwtSettings__Audience}
-      - JwtSettings__ExpirationInHours=${JwtSettings__ExpirationInHours} 
+      - JwtSettings__ExpirationInHours=${JwtSettings__ExpirationInHours}
     depends_on:
       - mongo
       - redis
@@ -59,7 +67,7 @@ services:
       - MONGO_INITDB_DATABASE=${MongoDbSettings__DatabaseName}
     volumes:
       - mongodb_data:/data/db
-      - ./db:/docker-entrypoint-initdb.d 
+      - ./db:/docker-entrypoint-initdb.d
 
   redis:
     image: redis:latest
