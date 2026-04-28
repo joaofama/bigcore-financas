@@ -18,7 +18,7 @@ const router = createRouter({
     {
       path: "/",
       component: MainLayout,
-      meta: { requiresAuth: true }, // Protege o layout e todas as telas dentro dele
+      meta: { requiresAuth: true }, // Protege todas as rotas filhas
       children: [
         {
           path: "dashboard",
@@ -30,6 +30,12 @@ const router = createRouter({
           name: "Lançamentos",
           component: () =>
             import("@/modules/transacoes/views/TransacoesView.vue"),
+        },
+        {
+          path: "categorias",
+          name: "categorias",
+          component: () =>
+            import("@/modules/categorias/views/CategoriasView.vue"),
         },
       ],
     },

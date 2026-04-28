@@ -51,8 +51,11 @@ builder.Services.AddSingleton<MongoDbContext>();
 
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = redisSettings?.ConnectionString;
-    options.InstanceName = "Financas_";
+    options.Configuration = redisSettings?.ConnectionString
+        ?? throw new InvalidOperationException("Configuração do Redis não encontrada.");
+
+    options.InstanceName = redisSettings?.InstanceName
+        ?? throw new InvalidOperationException("Redis InstanceName não configurado no .env");
 });
 
 builder.Services.AddSingleton<RedisContext>();

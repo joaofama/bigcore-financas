@@ -7,5 +7,7 @@ public class RedisSettings
     public string Password { get; set; } = string.Empty;
     public int CacheExpirationInHours { get; set; }
 
+    public string InstanceName { get; set; } = string.Empty;
+
     public string ConnectionString => $"{Host}:{Port},password={Password}";
 }

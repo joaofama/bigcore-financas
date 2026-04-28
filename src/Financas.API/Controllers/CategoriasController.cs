@@ -29,9 +29,9 @@ public class CategoriasController : MainController
             request.CategoriaPaiId
         );
 
-        var id = await _mediator.Send(command);
+        var response = await _mediator.Send(command);
 
-        return CreatedAtAction(nameof(ObterPorId), new { id }, id);
+        return CreatedAtAction(nameof(ObterPorId), new { id = response.Id }, response);
     }
 
     [HttpPut("{id:guid}")]

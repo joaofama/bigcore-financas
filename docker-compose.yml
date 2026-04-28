@@ -36,6 +36,9 @@ services:
       context: ./ui
       args:
         - VITE_API_URL=${VITE_API_URL}
+    # Adicionado environment para o Vite ler em tempo de execução (dev mode)
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
     ports:
       - "${UI_ExternalPort}:${UI_InternalPort}"
     depends_on:

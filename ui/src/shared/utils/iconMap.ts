@@ -1,18 +1,20 @@
 import * as LucideIcons from "lucide-vue-next";
 import type { Component } from "vue";
 
-/**
- * Busca o componente Lucide diretamente pelo nome exato vindo do banco.
- */
 export const getLucideIcon = (
   iconName: string | null | undefined,
 ): Component => {
   if (!iconName) return LucideIcons.Package;
 
-  // Busca direta: se o banco diz "Pizza", pegamos LucideIcons["Pizza"]
-  const icon = (LucideIcons as any)[iconName];
+  const pascalName = iconName
+    .trim()
+    .split(/[- ]+/) // Divide por traço ou espaço
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join("");
 
-  // Se o ícone não existir na biblioteca (erro de digitação no banco, por exemplo),
-  // ele retorna o 'Package' como padrão.
+  // Busca no objeto de ícones
+  const icon = (LucideIcons as any)[pascalName];
+
+  // Se o usuário digitou algo que ainda não existe, retorna o Package (ou outro padrão)
   return icon || LucideIcons.Package;
 };
