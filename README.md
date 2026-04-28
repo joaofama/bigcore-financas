@@ -64,6 +64,41 @@ Após o processo de build e inicialização, o terminal deverá exibir o status 
 
 ---
 
+## 🔗 Interfaces e Credenciais de Acesso
+
+Após subir os contentores, utilize os links e credenciais abaixo para navegar pelo ecossistema do projeto:
+
+### **1. Aplicação e API**
+| Recurso | URL | Objetivo |
+| :--- | :--- | :--- |
+| **Aplicação Web** | [http://localhost:3000](http://localhost:3000) | Dashboard e Gestão Financeira |
+| **Swagger UI** | [http://localhost:5000/swagger](http://localhost:5000/swagger) | Documentação e Testes da API |
+
+> **Credenciais de Teste:**
+> * **E-mail:** `teste@teste.com`
+> * **Senha:** `teste@123`
+
+### **2. Infraestrutura**
+| Recurso | URL | Credenciais |
+| :--- | :--- | :--- |
+| **Mongo Express** | [http://localhost:8081](http://localhost:8081) | Utilizador: `admin` / Senha: `pass` |
+| **Redis Commander** | [http://localhost:8082](http://localhost:8082) | Visualização de Cache Real-time |
+| **MongoDB Host** | `localhost:27017` | User: `admin` / Pass: `admin123` |
+
+---
+
+## ⚡ Como Testar o Real-time (SignalR) na Prática
+
+Para visualizar a comunicação via WebSockets a acontecer em tempo real, sugerimos o seguinte teste prático:
+
+1. **Abra duas janelas do navegador lado a lado:**
+   * **Janela 1:** Acesse a tela inicial do **Dashboard** (onde estão os gráficos e os saldos totais).
+   * **Janela 2:** Acesse a tela de **Lançamentos** (ou Categorias).
+2. **Faça uma alteração:** Na Janela 2, adicione, edite ou exclua uma transação qualquer.
+3. **Observe a Mágica:** Sem precisar de recarregar a página (F5), repare na Janela 1. Os saldos, receitas e despesas serão recalculados e os gráficos vão animar automaticamente refletindo os novos dados.
+
+---
+
 ## 📂 Estrutura do Projeto (Clean Arch & DDD)
 
 O projeto está dividido para garantir que a lógica de negócio nunca dependa de detalhes técnicos:
