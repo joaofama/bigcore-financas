@@ -1,3 +1,4 @@
+
 ---
 
 # 💰 Finanças API & Dashboard Real-time (BigCore)
@@ -21,29 +22,6 @@ Este projeto é uma solução de alta performance para gestão financeira, proje
 * **Vue.js 3 (TypeScript + Vite)**: Framework moderno e tipado para uma UI reativa.
 * **Tailwind CSS**: Estilização utilitária focada em design system escuro (Dark Theme).
 * **Lucide Vue Next**: Biblioteca de ícones dinâmica integrada ao mapeamento de categorias.
-
----
-
-## 🔗 Interfaces e Credenciais de Acesso
-
-Após subir os contentores, utilize os links e credenciais abaixo para navegar pelo ecossistema do projeto:
-
-### **1. Aplicação e API**
-| Recurso | URL | Objetivo |
-| :--- | :--- | :--- |
-| **Aplicação Web** | [http://localhost:3000](http://localhost:3000) | Dashboard e Gestão Financeira |
-| **Swagger UI** | [http://localhost:5000/swagger](http://localhost:5000/swagger) | Documentação e Testes da API |
-
-> **Credenciais de Teste:**
-> * **E-mail:** `teste@teste.com`
-> * **Senha:** `teste@123`
-
-### **2. Infraestrutura**
-| Recurso | URL | Credenciais |
-| :--- | :--- | :--- |
-| **Mongo Express** | [http://localhost:8081](http://localhost:8081) | Utilizador: `admin` / Senha: `pass` |
-| **Redis Commander** | [http://localhost:8082](http://localhost:8082) | Visualização de Cache Real-time |
-| **MongoDB Host** | `localhost:27017` | User: `admin` / Pass: `admin123` |
 
 ---
 
@@ -73,16 +51,51 @@ Após o processo de build e inicialização, o terminal deverá exibir o status 
 
 ```diff
 [+] up 48/48d intermediate container 
-+ ⠿ Image financas-api                           Built
-+ ⠿ Image financas-ui                            Built
-+ ⠿ Network financas_default                     Created
-+ ⠿ Container financas-redis                     Started
-+ ⠿ Container financas-mongodb                   Started
-+ ⠿ Container financas-redis-commander           Started
-+ ⠿ Container financas-api                       Started
-+ ⠿ Container financas-mongo-express             Started
-+ ⠿ Container financas-ui                        Started
++ ⠿ Image financas-api                             Built
++ ⠿ Image financas-ui                              Built
++ ⠿ Network financas_default                       Created
++ ⠿ Container financas-redis                       Started
++ ⠿ Container financas-mongodb                     Started
++ ⠿ Container financas-redis-commander             Started
++ ⠿ Container financas-api                         Started
++ ⠿ Container financas-mongo-express               Started
++ ⠿ Container financas-ui                          Started
 ```
+
+---
+
+## 🔗 Interfaces e Credenciais de Acesso
+
+Após subir os contentores, utilize os links e credenciais abaixo para navegar pelo ecossistema do projeto:
+
+### **1. Aplicação e API**
+| Recurso | URL | Objetivo |
+| :--- | :--- | :--- |
+| **Aplicação Web** | [http://localhost:3000](http://localhost:3000) | Dashboard e Gestão Financeira |
+| **Swagger UI** | [http://localhost:5000/swagger](http://localhost:5000/swagger) | Documentação e Testes da API |
+
+> **Credenciais de Teste:**
+> * **E-mail:** `teste@teste.com`
+> * **Senha:** `teste@123`
+
+### **2. Infraestrutura**
+| Recurso | URL | Credenciais |
+| :--- | :--- | :--- |
+| **Mongo Express** | [http://localhost:8081](http://localhost:8081) | Utilizador: `admin` / Senha: `pass` |
+| **Redis Commander** | [http://localhost:8082](http://localhost:8082) | Visualização de Cache Real-time |
+| **MongoDB Host** | `localhost:27017` | User: `admin` / Pass: `admin123` |
+
+---
+
+## ⚡ Como Testar o Real-time (SignalR) na Prática
+
+Para visualizar a comunicação via WebSockets a acontecer em tempo real, sugerimos o seguinte teste prático:
+
+1. **Abra duas janelas do navegador lado a lado:**
+   * **Janela 1:** Acesse a tela inicial do **Dashboard** (onde estão os gráficos e os saldos totais).
+   * **Janela 2:** Acesse a tela de **Lançamentos** (ou Categorias).
+2. **Faça uma alteração:** Na Janela 2, adicione, edite ou exclua uma transação qualquer.
+3. **Observe a Mágica:** Sem precisar de recarregar a página (F5), repare na Janela 1. Os saldos, receitas e despesas serão recalculados e os gráficos vão animar automaticamente refletindo os novos dados.
 
 ---
 
