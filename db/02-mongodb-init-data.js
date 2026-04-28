@@ -23,12 +23,12 @@ var categorias = [];
 
 // --- RECEITAS (TIPO R) ---
 var receitasList = [
-    { id: "1", nome: "Salário", icone: "Banknote" },
-    { id: "2", nome: "Investimentos", icone: "TrendingUp" },
-    { id: "3", nome: "Freelance", icone: "Laptop" },
-    { id: "4", nome: "Comissão", icone: "BadgePercent" },
-    { id: "5", nome: "Reembolso", icone: "Undo2" },
-    { id: "6", nome: "Venda de bens", icone: "ShoppingBag" }
+    { id: "1", nome: "SALARIO", icone: "Banknote" },
+    { id: "2", nome: "INVESTIMENTOS", icone: "TrendingUp" },
+    { id: "3", nome: "FREELANCE", icone: "Laptop" },
+    { id: "4", nome: "COMISSAO", icone: "BadgePercent" },
+    { id: "5", nome: "REEMBOLSO", icone: "Undo2" },
+    { id: "6", nome: "VENDA DE BENS", icone: "ShoppingBag" }
 ];
 
 receitasList.forEach(item => {
