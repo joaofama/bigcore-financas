@@ -1,4 +1,6 @@
-# 💰 Finanças API & Dashboard Real-time
+---
+
+# 💰 Finanças API & Dashboard Real-time (BigCore)
 
 Este projeto é uma solução de alta performance para gestão financeira, projetada com foco em escalabilidade, testabilidade e manutenibilidade. A arquitetura foi desenvolvida seguindo os rigorosos padrões de **Clean Architecture**, guiada por **Domain-Driven Design (DDD)** e fundamentada nos princípios **SOLID**.
 
@@ -7,87 +9,98 @@ Este projeto é uma solução de alta performance para gestão financeira, proje
 ## 🚀 Tecnologias e Padrões de Projeto
 
 ### **Core & Back-end**
-* **.NET 9** (C#)
+* **.NET 9 (C#)**: Plataforma principal de alto desempenho.
 * **SOLID Principles**: Aplicação rigorosa dos cinco princípios para um código limpo e extensível.
-* **Domain-Driven Design (DDD)**: Modelagem focada no domínio (Entidades, Value Objects e Repositórios).
+* **Domain-Driven Design (DDD)**: Modelação focada no domínio (Entidades, Value Objects e Repositórios).
 * **Clean Architecture**: Separação total de interesses entre as camadas de Domínio, Aplicação, Infraestrutura e API.
 * **CQRS com MediatR**: Desacoplamento entre comandos (escrita) e consultas (leitura) através de Handlers.
-* **SignalR + Redis Backplane**: Mensageria real-time escalável para atualizações de dashboard.
-* **MongoDB & Redis**: Persistência NoSQL (JSON/Bson) e Cache de alta performance.
+* **SignalR + Redis Backplane**: Mensajeria real-time escalável para atualizações instantâneas de dashboard.
+* **MongoDB & Redis**: Persistência NoSQL (JSON/Bson) e Cache de alta performance com limpeza automática.
 
 ### **Front-end**
-* **Vue.js 3** (TypeScript + Vite)
-* **Tailwind CSS** & **SignalR Client**
+* **Vue.js 3 (TypeScript + Vite)**: Framework moderno e tipado para uma UI reativa.
+* **Tailwind CSS**: Estilização utilitária focada em design system escuro (Dark Theme).
+* **Lucide Vue Next**: Biblioteca de ícones dinâmica integrada ao mapeamento de categorias.
 
 ---
 
 ## 🔗 Interfaces e Credenciais de Acesso
 
-Após subir os containers, utilize os links e credenciais abaixo para navegar pelo ecossistema do projeto:
+Após subir os contentores, utilize os links e credenciais abaixo para navegar pelo ecossistema do projeto:
 
 ### **1. Aplicação e API**
-Para testar as funcionalidades do sistema e visualizar a documentação:
-* **Aplicação Web (Dashboard):** http://localhost:3000
-* **Swagger (Documentação da API):** http://localhost:5000/swagger
-* **Credenciais do Usuário de Teste:**
-  * **E-mail:** `teste@teste.com`
-  * **Senha:** `teste@123`
+| Recurso | URL | Objetivo |
+| :--- | :--- | :--- |
+| **Aplicação Web** | [http://localhost:3000](http://localhost:3000) | Dashboard e Gestão Financeira |
+| **Swagger UI** | [http://localhost:5000/swagger](http://localhost:5000/swagger) | Documentação e Testes da API |
 
-### **2. Infraestrutura (Bancos de Dados e Cache)**
-As credenciais abaixo são baseadas no arquivo `.env` padrão configurado no Docker:
+> **Credenciais de Teste:**
+> * **E-mail:** `teste@teste.com`
+> * **Senha:** `teste@123`
 
-* **Mongo Express (Interface Web do MongoDB)**
-  * **URL:** http://localhost:8081
-  * **Usuário:** `admin`
-  * **Senha:** `pass`
-
-* **MongoDB (Conexão direta via Compass ou Shell)**
-  * **Host:** `localhost:27017`
-  * **Usuário:** `admin`
-  * **Senha:** `admin123`
-  * **Database:** `FinancasDb`
-
-* **Redis Commander (Interface Web do Redis)**
-  * **URL:** http://localhost:8082
+### **2. Infraestrutura**
+| Recurso | URL | Credenciais |
+| :--- | :--- | :--- |
+| **Mongo Express** | [http://localhost:8081](http://localhost:8081) | Utilizador: `admin` / Senha: `pass` |
+| **Redis Commander** | [http://localhost:8082](http://localhost:8082) | Visualização de Cache Real-time |
+| **MongoDB Host** | `localhost:27017` | User: `admin` / Pass: `admin123` |
 
 ---
 
 ## 🛠️ Como Executar via Docker (Obrigatório)
 
-Siga os passos abaixo para subir o ecossistema completo:
+O projeto é 100% contentorizado e configurável via variáveis de ambiente. Siga os passos abaixo:
 
 1. **Clone o repositório:**
    ```bash
-   git clone https://github.com/seu-usuario/seu-repositorio.git
-   cd BigCore
+   git clone https://github.com/joaofama/bigcore-financas.git
+   cd bigcore-financas
    ```
 
 2. **Configuração do Ambiente:**
    > ⚠️ **IMPORTANTE:** O arquivo `.env` não é versionado por segurança.
    > 
-   > **Renomeie o arquivo `.env-example` para `.env` na raiz do projeto antes de iniciar.**
-   > No terminal: `cp .env-example .env` (ou via Windows Explorer).
+   > **Renomeie o arquivo `.env-example` para `.env` na raiz do projeto.**
 
-3. **Suba os containers:**
+
+3. **Suba os contentores:**
    ```bash
-   docker-compose up --build
+   docker-compose up -d --build
    ```
-   *(Após o build, consulte a seção de Interfaces e Credenciais acima para acessar o sistema).*
+
+### ✅ Confirmação de Sucesso
+Após o processo de build e inicialização, o terminal deverá exibir o status abaixo em verde (via `diff` highlighting):
+
+```diff
+[+] up 48/48d intermediate container 
++ ⠿ Image financas-api                           Built
++ ⠿ Image financas-ui                            Built
++ ⠿ Network financas_default                     Created
++ ⠿ Container financas-redis                     Started
++ ⠿ Container financas-mongodb                   Started
++ ⠿ Container financas-redis-commander           Started
++ ⠿ Container financas-api                       Started
++ ⠿ Container financas-mongo-express             Started
++ ⠿ Container financas-ui                        Started
+```
 
 ---
 
 ## 📂 Estrutura do Projeto (Clean Arch & DDD)
 
-O projeto está dividido em camadas para garantir que a lógica de negócio seja independente de frameworks externos:
+O projeto está dividido para garantir que a lógica de negócio nunca dependa de detalhes técnicos:
 
-* **`src/Financas.Domain`**: O coração da aplicação. Contém as Entidades (como `Usuario`), interfaces de repositório e regras de negócio puras.
-* **`src/Financas.Application`**: Contém os Commands, Queries, Handlers e Requests. É onde os casos de uso são orquestrados via MediatR.
-* **`src/Financas.Infrastructure`**: Implementações técnicas. Configurações do MongoDB (Contexto e Mapeamentos), Repositórios e integração com Redis.
-* **`src/Financas.API`**: Camada de entrada. Controllers que recebem `Requests` e despacham `Commands`, além da configuração do Token JWT e SignalR.
-* **`ui/`**: Interface Single Page Application (SPA) moderna em Vue.js.
+* **`src/Financas.Domain`**: O "Coração". Entidades, Value Objects e interfaces de contrato. **Zero dependências externas.**
+* **`src/Financas.Application`**: Orquestração. Handlers de MediatR, DTOs e validações de casos de uso.
+* **`src/Financas.Infrastructure`**: Detalhes técnicos. Implementação de Repositórios MongoDB, Serviços de Cache Redis e SignalR Hubs.
+* **`src/Financas.API`**: Porta de entrada. Controllers, Middlewares de exceção e configuração dinâmica via `.env`.
+* **`ui/`**: Interface SPA moderna. Comunica-se com a API via Axios e recebe atualizações real-time via WebSockets.
 
 ---
 
-## 📝 Notas de Versão
-* O banco de dados é populado automaticamente via scripts de seed no Docker (`01-mongodb-init-schema.js` e `02-mongodb-init-data.js`).
-* Os IDs são armazenados nativamente como `BinData` (UUID) no MongoDB para máxima performance.
+## 📝 Notas Técnicas
+* **Segurança**: O sistema utiliza autenticação via JWT com suporte a tokens passados via QueryString para ligações SignalR.
+* **Performance**: As chaves do Redis são prefixadas dinamicamente (`RedisSettings__InstanceName`) e limpas automaticamente em qualquer operação de escrita (POST/PUT/DELETE).
+* **Seed de Dados**: O banco de dados é populado automaticamente no primeiro boot através dos scripts localizados em `/docker/mongo-init/`.
+
+---

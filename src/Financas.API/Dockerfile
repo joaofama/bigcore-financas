@@ -2,15 +2,21 @@
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 USER app
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
+
+# Recebe a porta interna do docker-compose (.env)
+ARG App_InternalPort
+# Define a porta que o ASP.NET (Kestrel) deve usar internamente
+ENV ASPNETCORE_HTTP_PORTS=$App_InternalPort
+
+# Expõe a porta dinâmica
+EXPOSE $ASPNETCORE_HTTP_PORTS
 
 # Estágio de Construção
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-# Copia os arquivos de projeto (caminhos relativos à raiz)
+# Copia os arquivos de projeto
 COPY ["src/Financas.API/Financas.API.csproj", "src/Financas.API/"]
 COPY ["src/Financas.Application/Financas.Application.csproj", "src/Financas.Application/"]
 COPY ["src/Financas.Domain/Financas.Domain.csproj", "src/Financas.Domain/"]
