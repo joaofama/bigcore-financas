@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Financas.Application.Responses.Transacoes;
+using MediatR;
 
 namespace Financas.Application.Commands.Transacoes;
 
@@ -8,5 +9,5 @@ public record CriarTransacaoCommand(
     decimal Valor,
     DateTime Data,
     string Tipo,
-    Guid CategoriaId 
-) : IRequest<Guid>;
+    Guid CategoriaId
+) : IRequest<TransacaoResponse>; 

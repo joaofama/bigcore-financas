@@ -22,8 +22,6 @@ builder.Configuration.Sources.Clear();
 builder.Configuration.AddEnvironmentVariables();
 
 // --- 2. Configurações Globais MongoDB ---
-// O driver v3.0+ não usa mais o BsonDefaults. 
-// A configuração agora é feita via Serializer direto no MapEntities que está no MongoDbContext.
 MongoDbContext.Configure();
 
 // --- 3. Mapeamento de Configurações (Options Pattern) ---
@@ -33,34 +31,35 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(nameof(
 
 var redisSettings = builder.Configuration.GetSection(nameof(RedisSettings)).Get<RedisSettings>();
 
-// --- 4. CORS ---
+// --- 4. CORS DINÂMICO (Atualizado para SignalR + Docker) ---
+var origins = builder.Configuration["ALLOWED_ORIGINS"]?.Split(',') ?? Array.Empty<string>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DefaultPolicy", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(origins)
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials(); // Obrigatório para SignalR com Auth
     });
 });
 
-// --- 5. Injeção de Dependência (Application & Infrastructure) ---
+// --- 5. Injeção de Dependência ---
 builder.Services.AddApplication();
 builder.Services.AddSingleton<MongoDbContext>();
 
-// Configuração do Redis (Cache)
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = redisSettings?.ConnectionString;
     options.InstanceName = "Financas_";
 });
 
-// Registro de Serviços de Cache e Token
 builder.Services.AddSingleton<RedisContext>();
 builder.Services.AddScoped<ICacheService, RedisCacheService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
-// --- CONFIGURAÇÃO SIGNALR COM REDIS BACKPLANE ---
+// SignalR com Redis Backplane
 builder.Services.AddSignalR()
     .AddStackExchangeRedis(redisSettings?.ConnectionString ?? throw new InvalidOperationException("Redis não configurado"), options =>
     {
@@ -69,7 +68,6 @@ builder.Services.AddSignalR()
 
 builder.Services.AddScoped<INotificationService, SignalRService>();
 
-// Registro de Repositórios
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
 builder.Services.AddScoped<ITransacaoRepository, TransacaoRepository>();
@@ -78,14 +76,14 @@ builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 
-// --- 6. Configuração do Swagger com Suporte a JWT ---
+// --- 6. Swagger ---
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Financas API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header usando o esquema Bearer. Exemplo: 'Bearer 12345abcdef'",
+        Description = "JWT Authorization header usando o esquema Bearer.",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
@@ -103,7 +101,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// --- 7. Configuração de Autenticação JWT ---
+// --- 7. Configuração JWT ---
 var jwtSettings = builder.Configuration.GetSection(nameof(JwtSettings)).Get<JwtSettings>();
 var jwtSecret = jwtSettings?.Secret ?? throw new InvalidOperationException("JWT Secret não configurado");
 var key = Encoding.UTF8.GetBytes(jwtSecret);
@@ -134,7 +132,8 @@ builder.Services.AddAuthentication(options =>
             var accessToken = context.Request.Query["access_token"];
             var path = context.HttpContext.Request.Path;
 
-            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+            // Ajustado para capturar o token em qualquer rota que comece com /hubs
+            if (!string.IsNullOrEmpty(accessToken) && path.Value!.Contains("/hubs"))
             {
                 context.Token = accessToken;
             }
@@ -147,7 +146,7 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// --- 8. Pipeline de Execução (Middlewares) ---
+// --- 8. Middlewares e Rotas ---
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseSwagger();
@@ -162,6 +161,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHub<NotificationHub>("/hubs/notifications");
+
+// Mapeamento do Hub (Prefixado com /api para bater com seu VITE_API_URL)
+app.MapHub<NotificationHub>("/api/hubs/notifications");
 
 app.Run();

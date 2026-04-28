@@ -1,6 +1,8 @@
+name: financas
+
 services:
   api:
-    container_name: financas-api-app
+    container_name: financas-api
     build:
       context: .
       dockerfile: src/Financas.API/Dockerfile
@@ -8,6 +10,7 @@ services:
     ports:
       - "${App_ExternalPort}:${App_InternalPort}"
     environment:
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:${App_InternalPort}
       - ASPNETCORE_HTTP_PORTS=${App_InternalPort}      
@@ -34,7 +37,7 @@ services:
       args:
         - VITE_API_URL=${VITE_API_URL}
     ports:
-      - "3000:80"
+      - "${UI_ExternalPort}:${UI_InternalPort}"
     depends_on:
       - api
 
@@ -42,7 +45,7 @@ services:
     image: mongo:latest
     container_name: financas-mongodb
     restart: always
-    command: mongod --port ${MongoDbSettings__Port}
+    command: mongod --quiet --port ${MongoDbSettings__Port}
     ports:
       - "${MongoDbSettings__Port}:${MongoDbSettings__Port}"
     environment:

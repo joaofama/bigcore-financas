@@ -5,22 +5,32 @@ using MediatR;
 
 namespace Financas.Application.Handlers.Transacoes;
 
-public class ObterTransacoesPorMesQueryHandler : IRequestHandler<ObterTransacoesPorMesQuery, IEnumerable<TransacaoResponse>>
+public class ObterTransacoesPorMesQueryHandler : IRequestHandler<ObterTransacoesPorMesQuery, TransacoesMesResponse>
 {
     private readonly ITransacaoRepository _transacaoRepository;
+    private readonly IDashboardRepository _dashboardRepository;
 
-    public ObterTransacoesPorMesQueryHandler(ITransacaoRepository transacaoRepository)
+    public ObterTransacoesPorMesQueryHandler(
+        ITransacaoRepository transacaoRepository,
+        IDashboardRepository dashboardRepository)
     {
         _transacaoRepository = transacaoRepository;
+        _dashboardRepository = dashboardRepository;
     }
 
-    public async Task<IEnumerable<TransacaoResponse>> Handle(ObterTransacoesPorMesQuery request, CancellationToken ct)
+    public async Task<TransacoesMesResponse> Handle(ObterTransacoesPorMesQuery request, CancellationToken ct)
     {
-        // Consulta no repositório já filtrando o intervalo do mês exato
-        var transacoes = await _transacaoRepository.ObterPorMesEAnoAsync(request.UsuarioId, request.Mes, request.Ano);
+        // 1. Criar a data de início do mês para bater com a lógica do Dashboard
+        var dataInicioMes = new DateTime(request.Ano, request.Mes, 1);
 
-        // Mapeamento direto e rápido para o objeto plano de resposta
-        return transacoes.Select(t => new TransacaoResponse(
+        // 2. Busca o Saldo Inicial exatamente como no Dashboard
+        var saldoInicial = await _dashboardRepository.ObterSaldoAteDataAsync(request.UsuarioId, dataInicioMes);
+
+        // 3. Busca as transações do mês
+        var transacoesEntity = await _transacaoRepository.ObterPorMesEAnoAsync(request.UsuarioId, request.Mes, request.Ano);
+
+        // 4. Mapeia para o response individual
+        var transacoesResponse = transacoesEntity.Select(t => new TransacaoResponse(
             t.Id,
             t.Descricao,
             t.Valor,
@@ -32,6 +42,22 @@ public class ObterTransacoesPorMesQueryHandler : IRequestHandler<ObterTransacoes
             t.CategoriaPaiId,
             t.CategoriaPaiNome,
             t.CategoriaPaiIcone
-        ));
+        )).ToList();
+
+        // 5. Calcula Receitas e Despesas do mês atual (LINQ em memória é mais rápido aqui)
+        var totalReceitas = transacoesResponse.Where(t => t.Tipo == "R").Sum(t => t.Valor);
+        var totalDespesas = transacoesResponse.Where(t => t.Tipo == "D").Sum(t => t.Valor);
+
+        // 6. Calcula Saldo Atual
+        var saldoAtual = saldoInicial + totalReceitas - totalDespesas;
+
+        // 7. Retorna o objeto completo para o Front-end
+        return new TransacoesMesResponse(
+            SaldoInicial: saldoInicial,
+            TotalReceitas: totalReceitas,
+            TotalDespesas: totalDespesas,
+            SaldoAtual: saldoAtual,
+            Transacoes: transacoesResponse
+        );
     }
 }

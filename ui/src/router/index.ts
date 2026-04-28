@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import LoginView from "@/modules/auth/views/LoginView.vue";
 import DashboardView from "@/modules/dashboard/views/DashboardView.vue";
-// Importe o seu MainLayout (ajuste o caminho se ele estiver em outra pasta)
 import MainLayout from "@/components/layout/MainLayout.vue";
 
 const router = createRouter({
@@ -16,20 +15,22 @@ const router = createRouter({
       name: "login",
       component: LoginView,
     },
-    // A MÁGICA ACONTECE AQUI:
-    // Criamos uma rota para o Layout e colocamos o Dashboard dentro dela
     {
       path: "/",
       component: MainLayout,
       meta: { requiresAuth: true }, // Protege o layout e todas as telas dentro dele
       children: [
         {
-          // O caminho vazio ou com nome fará o Dashboard carregar dentro do <router-view> do MainLayout
           path: "dashboard",
           name: "dashboard",
           component: DashboardView,
         },
-        // No futuro, a rota de 'lancamentos' vai entrar aqui também!
+        {
+          path: "transacoes",
+          name: "Lançamentos",
+          component: () =>
+            import("@/modules/transacoes/views/TransacoesView.vue"),
+        },
       ],
     },
   ],

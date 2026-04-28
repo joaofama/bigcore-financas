@@ -7,4 +7,4 @@ public record ObterTransacoesPorMesQuery(
     Guid UsuarioId,
     int Mes,
     int Ano
-) : IRequest<IEnumerable<TransacaoResponse>>;
+) : IRequest<TransacoesMesResponse>;
