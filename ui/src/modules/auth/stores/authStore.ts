@@ -1,39 +1,34 @@
 import { defineStore } from "pinia";
 import { authService } from "../services/authService";
-import type { LoginRequest } from "../types"; // Criaremos este arquivo de tipos logo abaixo
+import type { LoginRequest } from "../types";
 
 export const useAuthStore = defineStore("auth", {
-  // 1. Estado: Onde os dados "vivem"
   state: () => ({
     token: localStorage.getItem("token") || "",
-    user: null as any, // Você pode tipar como 'Usuario | null' depois
+    // ⚡ Adicionado: Tenta pegar o nome salvo, ou define como vazio
+    userName: localStorage.getItem("userName") || "",
     loading: false,
   }),
 
-  // 2. Getters: Como se fossem "propriedades computadas" da Store
   getters: {
     isAuthenticated: (state) => !!state.token,
   },
 
-  // 3. Actions: Métodos que alteram o estado (podem ser assíncronos)
   actions: {
     async login(credentials: LoginRequest) {
       this.loading = true;
       try {
-        // Chamada ao Service (Garçom)
         const data = await authService.login(credentials);
 
-        // Atualiza o estado da Store
         this.token = data.token;
-        // Se sua API retornar dados do usuário no login, salve aqui:
-        // this.user = data.user;
+        this.userName = data.nome; // ⚡ Salva no estado
 
-        // Persistência simples para não deslogar ao dar F5
         localStorage.setItem("token", data.token);
+        localStorage.setItem("userName", data.nome); // ⚡ Persiste o nome no navegador
 
         return data;
       } catch (error) {
-        this.logout(); // Limpa tudo se der erro
+        this.logout();
         throw error;
       } finally {
         this.loading = false;
@@ -42,8 +37,9 @@ export const useAuthStore = defineStore("auth", {
 
     logout() {
       this.token = "";
-      this.user = null;
+      this.userName = ""; // ⚡ Limpa o nome
       localStorage.removeItem("token");
+      localStorage.removeItem("userName"); // ⚡ Remove do navegador
     },
   },
 });

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, reactive } from "vue";
 import { ExternalLink, Info } from "lucide-vue-next";
 import { getLucideIcon } from "@/shared/utils/iconMap";
 import type { Categoria } from "../types";
@@ -17,16 +17,25 @@ const emit = defineEmits(["close", "confirm"]);
 const nome = ref("");
 const iconeDigitado = ref("Tag");
 
+// Estado de erros para validação
+const errors = reactive({
+  nome: "",
+  icone: "",
+});
+
 const isSubcategory = computed(
   () => !!props.parentId || !!props.categoriaParaEditar?.categoriaPaiId,
 );
 const isEditing = computed(() => !!props.categoriaParaEditar);
 
-// Preenche os campos quando o modal abre para edição
+// Preenche os campos quando o modal abre para edição e limpa erros
 watch(
   () => props.isOpen,
   (isOpen) => {
     if (isOpen) {
+      errors.nome = "";
+      errors.icone = "";
+
       if (props.categoriaParaEditar) {
         nome.value = props.categoriaParaEditar.nome;
         iconeDigitado.value = props.categoriaParaEditar.icone;
@@ -38,13 +47,31 @@ watch(
   },
 );
 
+const validate = () => {
+  let isValid = true;
+  errors.nome = "";
+  errors.icone = "";
+
+  if (!nome.value || nome.value.trim() === "") {
+    errors.nome = "O nome da categoria é obrigatório.";
+    isValid = false;
+  }
+
+  if (!iconeDigitado.value || iconeDigitado.value.trim() === "") {
+    errors.icone = "O ícone é obrigatório.";
+    isValid = false;
+  }
+
+  return isValid;
+};
+
 const handleConfirm = () => {
-  if (!nome.value) return;
+  if (!validate()) return;
 
   emit("confirm", {
     id: props.categoriaParaEditar?.id,
-    nome: nome.value,
-    icone: iconeDigitado.value,
+    nome: nome.value.trim(),
+    icone: iconeDigitado.value.trim(),
     tipo: props.tipo,
     categoriaPaiId: isEditing.value
       ? props.categoriaParaEditar!.categoriaPaiId
@@ -57,6 +84,8 @@ const handleConfirm = () => {
 const close = () => {
   nome.value = "";
   iconeDigitado.value = "Tag";
+  errors.nome = "";
+  errors.icone = "";
   emit("close");
 };
 </script>
@@ -83,7 +112,7 @@ const close = () => {
           </p>
         </div>
 
-        <div class="space-y-2 mb-6">
+        <div class="space-y-1 mb-6">
           <label
             class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1"
           >
@@ -91,10 +120,22 @@ const close = () => {
           </label>
           <input
             v-model="nome"
+            @input="errors.nome = ''"
             type="text"
             placeholder="Ex: Alimentação, Lazer..."
-            class="w-full bg-[#1c1c1f] border-2 border-zinc-800 rounded-2xl px-5 py-4 text-white placeholder:text-zinc-600 focus:border-purple-600 focus:outline-none transition-all"
+            :class="[
+              'w-full bg-[#1c1c1f] border-2 rounded-2xl px-5 py-4 text-white placeholder:text-zinc-600 focus:outline-none transition-all',
+              errors.nome
+                ? 'border-red-500/50 focus:border-red-500'
+                : 'border-zinc-800 focus:border-purple-600',
+            ]"
           />
+          <p
+            v-if="errors.nome"
+            class="text-[10px] text-red-400 font-bold ml-1 uppercase tracking-wider"
+          >
+            {{ errors.nome }}
+          </p>
         </div>
 
         <div class="space-y-4">
@@ -113,12 +154,26 @@ const close = () => {
             </a>
           </div>
 
-          <input
-            v-model="iconeDigitado"
-            type="text"
-            placeholder="Ex: Pizza, Wallet, Heart..."
-            class="w-full bg-[#1c1c1f] border-2 border-zinc-800 rounded-2xl px-5 py-4 text-white focus:border-zinc-700 outline-none transition-all font-mono text-sm"
-          />
+          <div class="space-y-1">
+            <input
+              v-model="iconeDigitado"
+              @input="errors.icone = ''"
+              type="text"
+              placeholder="Ex: Pizza, Wallet, Heart..."
+              :class="[
+                'w-full bg-[#1c1c1f] border-2 rounded-2xl px-5 py-4 text-white outline-none transition-all font-mono text-sm',
+                errors.icone
+                  ? 'border-red-500/50 focus:border-red-500'
+                  : 'border-zinc-800 focus:border-zinc-700',
+              ]"
+            />
+            <p
+              v-if="errors.icone"
+              class="text-[10px] text-red-400 font-bold ml-1 uppercase tracking-wider"
+            >
+              {{ errors.icone }}
+            </p>
+          </div>
 
           <div
             class="bg-[#1c1c1f] border border-zinc-800 rounded-2xl p-6 flex flex-col items-center justify-center gap-3"
@@ -152,14 +207,14 @@ const close = () => {
           <button
             type="button"
             @click="close"
-            class="text-zinc-500 hover:text-zinc-300 font-bold text-sm transition-colors"
+            class="text-zinc-500 hover:text-zinc-300 font-bold text-sm transition-colors uppercase tracking-widest text-[12px]"
           >
             Cancelar
           </button>
           <button
             type="button"
             @click="handleConfirm"
-            class="bg-purple-600 hover:bg-purple-500 text-white px-10 py-4 rounded-full font-bold transition-all shadow-lg shadow-purple-900/20 active:scale-95"
+            class="bg-purple-600 hover:bg-purple-500 text-white px-10 py-4 rounded-xl font-bold transition-all shadow-lg shadow-purple-900/20 active:scale-95 uppercase tracking-widest text-[12px]"
           >
             Guardar
           </button>

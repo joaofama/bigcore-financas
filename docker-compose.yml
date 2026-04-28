@@ -6,6 +6,8 @@ services:
     build:
       context: .
       dockerfile: src/Financas.API/Dockerfile
+      args:
+        - App_InternalPort=${App_InternalPort}
     restart: always
     ports:
       - "${App_ExternalPort}:${App_InternalPort}"
@@ -36,7 +38,7 @@ services:
       context: ./ui
       args:
         - VITE_API_URL=${VITE_API_URL}
-    # Adicionado environment para o Vite ler em tempo de execução (dev mode)
+        - UI_InternalPort=${UI_InternalPort}
     environment:
       - VITE_API_URL=${VITE_API_URL}
     ports:

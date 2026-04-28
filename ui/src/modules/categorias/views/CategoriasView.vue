@@ -18,6 +18,13 @@ import type { Categoria } from "../types";
 import { getLucideIcon } from "@/shared/utils/iconMap";
 import ModalCategoria from "../components/ModalCategoria.vue";
 
+// Novos imports de notificação (Toast e Modal Elegante)
+import { useToast } from "@/shared/composables/useToast";
+import { useNotification } from "@/shared/composables/useNotification";
+
+const toast = useToast();
+const notify = useNotification();
+
 // --- Estado de Dados ---
 const categories = ref<Categoria[]>([]);
 const expandedIds = ref<Set<string>>(new Set());
@@ -32,13 +39,14 @@ const isModalOpen = ref(false);
 const modalTipo = ref<"R" | "D">("R");
 const selectedParentId = ref<string | null>(null);
 const selectedParentName = ref<string | null>(null);
-const categoriaEmEdicao = ref<Categoria | null>(null); // NOVO: Guarda os dados para edição
+const categoriaEmEdicao = ref<Categoria | null>(null); // Guarda os dados para edição
 
 // --- Lógica de Carga ---
 const loadCategories = async () => {
   try {
     categories.value = await categoriaService.getAll();
   } catch (error) {
+    toast.error("Erro ao carregar as categorias.");
     console.error("Erro ao carregar categorias:", error);
   }
 };
@@ -110,6 +118,7 @@ const handleSaveCategory = async (data: any) => {
         tipo: data.tipo,
         categoriaPaiId: data.categoriaPaiId,
       });
+      toast.success("Categoria atualizada com sucesso!");
     } else {
       // Sem ID, é POST
       await categoriaService.create({
@@ -118,23 +127,36 @@ const handleSaveCategory = async (data: any) => {
         tipo: data.tipo,
         categoriaPaiId: data.categoriaPaiId,
       });
+      toast.success("Categoria incluída com sucesso!");
     }
     await loadCategories(); // Recarrega a lista do MongoDB/Redis
     isModalOpen.value = false;
-  } catch (error) {
+  } catch (error: any) {
+    const msgErro =
+      error.response?.data?.message || "Ocorreu um erro ao salvar a categoria.";
+    toast.error(msgErro);
     console.error("Erro ao salvar categoria:", error);
   }
 };
 
-const handleDeleteCategory = async (id: string) => {
-  if (!confirm("Deseja realmente excluir esta categoria?")) return;
-
-  try {
-    await categoriaService.delete(id);
-    await loadCategories(); // Força a nova listagem após limpar o cache na API
-  } catch (error) {
-    console.error("Erro ao excluir:", error);
-  }
+// Lógica de Exclusão usando o notify.confirm em vez do confirm nativo
+const handleDeleteCategory = (id: string) => {
+  notify.confirm(
+    "Esta ação não pode ser desfeita. Deseja realmente excluir esta categoria?",
+    async () => {
+      try {
+        await categoriaService.delete(id);
+        toast.success("Categoria excluída com sucesso!");
+        await loadCategories(); // Força a nova listagem após limpar o cache na API
+      } catch (error: any) {
+        const msgErro =
+          error.response?.data?.message || "Erro ao excluir a categoria.";
+        toast.error(msgErro);
+        console.error("Erro ao excluir:", error);
+      }
+    },
+    "Remover Categoria?",
+  );
 };
 
 onMounted(loadCategories);

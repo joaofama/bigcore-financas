@@ -27,11 +27,10 @@ public class ObterTransacaoPorIdQueryHandler : IRequestHandler<ObterTransacaoPor
             t.Data,
             t.Tipo,
             t.CategoriaId,
-            t.CategoriaNome,
-            t.CategoriaIcone,
-            t.CategoriaPaiId,
-            t.CategoriaPaiNome,
-            t.CategoriaPaiIcone
+            t.CategoriaPaiId != null ? t.CategoriaPaiNome! : t.CategoriaNome,
+            t.CategoriaPaiId != null ? t.CategoriaPaiIcone! : t.CategoriaIcone,
+            t.CategoriaPaiId != null ? t.CategoriaNome : null,
+            t.CategoriaPaiId != null ? t.CategoriaIcone : null
         );
     }
 }

@@ -1,7 +1,7 @@
 ﻿namespace Financas.Application.Requests.Transacoes
 {
     public record CriarTransacaoRequest(
-        string Descricao,
+        string? Descricao,
         decimal Valor,
         DateTime Data,
         string Tipo,

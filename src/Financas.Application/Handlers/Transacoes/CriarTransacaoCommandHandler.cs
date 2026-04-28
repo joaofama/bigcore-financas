@@ -56,7 +56,7 @@ public class CriarTransacaoCommandHandler : IRequestHandler<CriarTransacaoComman
         // 5. Notificação via SignalR para atualizar Dashboard/Gráficos
         await _notificationService.NotificarAtualizacaoDashboard(request.UsuarioId);
 
-        // 6. Retorna a Response completa para o Controller/Frontend
+        // 6. Retorna a Response completa para o Controller/Frontend com a nova semântica
         return new TransacaoResponse(
             transacao.Id,
             transacao.Descricao,
@@ -64,11 +64,16 @@ public class CriarTransacaoCommandHandler : IRequestHandler<CriarTransacaoComman
             transacao.Data,
             transacao.Tipo,
             transacao.CategoriaId,
-            transacao.CategoriaNome,
-            transacao.CategoriaIcone,
-            transacao.CategoriaPaiId,
-            transacao.CategoriaPaiNome,
-            transacao.CategoriaPaiIcone
+
+            // CATEGORIA PAI (Principal)
+            // Se tiver pai salvo no snapshot, usa ele. Se não (como Salário), a própria categoria vira o Pai
+            transacao.CategoriaPaiId != null ? transacao.CategoriaPaiNome! : transacao.CategoriaNome,
+            transacao.CategoriaPaiId != null ? transacao.CategoriaPaiIcone! : transacao.CategoriaIcone,
+
+            // SUBCATEGORIA (Detalhe)
+            // Se for filha, envia o nome original dela. Se for raiz, retorna null
+            transacao.CategoriaPaiId != null ? transacao.CategoriaNome : null,
+            transacao.CategoriaPaiId != null ? transacao.CategoriaIcone : null
         );
     }
 }

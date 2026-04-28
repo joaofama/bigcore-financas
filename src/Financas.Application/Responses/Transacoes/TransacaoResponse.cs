@@ -2,14 +2,13 @@
 
 public record TransacaoResponse(
     Guid Id,
-    string Descricao,
+    string? Descricao,
     decimal Valor,
     DateTime Data,
     string Tipo,
     Guid CategoriaId,
-    string CategoriaNome,
-    string CategoriaIcone,
-    Guid? CategoriaPaiId,
-    string? CategoriaPaiNome,
-    string? CategoriaPaiIcone
+    string CategoriaPaiNome,
+    string CategoriaPaiIcone,
+    string? SubcategoriaNome,
+    string? SubcategoriaIcone
 );

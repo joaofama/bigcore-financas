@@ -5,7 +5,7 @@ namespace Financas.Application.Commands.Transacoes;
 
 public record CriarTransacaoCommand(
     Guid UsuarioId,
-    string Descricao,
+    string? Descricao,
     decimal Valor,
     DateTime Data,
     string Tipo,

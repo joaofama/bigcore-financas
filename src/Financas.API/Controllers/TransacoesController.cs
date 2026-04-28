@@ -72,7 +72,7 @@ public class TransacoesController : MainController
     }
 
     [HttpGet("mes/{mes:int}/ano/{ano:int}")]
-    public async Task<ActionResult<IEnumerable<TransacaoResponse>>> ObterPorMesEAno(int mes, int ano)
+    public async Task<ActionResult<TransacoesMesResponse>> ObterPorMesEAno(int mes, int ano)
     {
         var result = await _mediator.Send(new ObterTransacoesPorMesQuery(UsuarioId, mes, ano));
         return Ok(result);

@@ -15,8 +15,7 @@ public class CriarTransacaoCommandValidator : AbstractValidator<CriarTransacaoCo
         RuleFor(x => x.UsuarioId)
             .NotEmpty().WithMessage("O usuário deve estar identificado.");
 
-        RuleFor(x => x.Descricao)
-            .NotEmpty().WithMessage("A descrição é obrigatória.")
+        RuleFor(x => x.Descricao)            
             .MaximumLength(100).WithMessage("A descrição deve ter no máximo 100 caracteres.");
 
         RuleFor(x => x.Valor)

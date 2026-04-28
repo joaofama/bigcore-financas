@@ -152,10 +152,18 @@
 
               <td class="px-8 py-5">
                 <span
-                  class="text-[10px] font-bold text-gray-500 uppercase bg-white/5 px-2.5 py-1 rounded-md border border-white/5 whitespace-nowrap"
+                  v-if="t.subcategoriaNome"
+                  class="inline-flex items-center gap-1.5 text-[10px] font-bold text-gray-500 uppercase bg-white/5 px-2.5 py-1 rounded-md border border-white/5 whitespace-nowrap"
                 >
-                  {{ t.categoriaNome }}
+                  <component
+                    v-if="t.subcategoriaIcone"
+                    :is="getLucideIcon(t.subcategoriaIcone)"
+                    :size="12"
+                    class="opacity-70"
+                  />
+                  {{ t.subcategoriaNome }}
                 </span>
+                <span v-else class="text-gray-700 text-sm font-bold">---</span>
               </td>
 
               <td class="px-8 py-5 text-sm text-gray-300 max-w-xs truncate">
@@ -289,6 +297,11 @@ import {
 } from "lucide-vue-next";
 import ModalLancamento from "../components/ModalLancamento.vue";
 import { getLucideIcon } from "@/shared/utils/iconMap";
+import { useToast } from "@/shared/composables/useToast";
+import { useNotification } from "@/shared/composables/useNotification";
+
+const toast = useToast();
+const notify = useNotification();
 
 // Estado de Período
 const now = new Date();
@@ -337,15 +350,15 @@ const months = [
   { value: 12, label: "Dez" },
 ];
 
-// Lógica Computada da Tabela (Filtro Interno)
+// Lógica Computada da Tabela
 const filteredData = computed(() => {
   if (!search.value) return allTransacoes.value;
   const s = search.value.toLowerCase();
   return allTransacoes.value.filter(
     (t) =>
-      t.descricao?.toLowerCase().includes(s) ||
-      t.categoriaNome?.toLowerCase().includes(s) ||
-      t.categoriaPaiNome?.toLowerCase().includes(s),
+      (t.descricao && t.descricao.toLowerCase().includes(s)) ||
+      (t.subcategoriaNome && t.subcategoriaNome.toLowerCase().includes(s)) ||
+      (t.categoriaPaiNome && t.categoriaPaiNome.toLowerCase().includes(s)),
   );
 });
 
@@ -366,16 +379,13 @@ const loadData = async () => {
       selectedMonth.value,
       selectedYear.value,
     );
-
-    // Atualiza o resumo (reativo)
     resumo.saldoInicial = response.saldoInicial;
     resumo.totalReceitas = response.totalReceitas;
     resumo.totalDespesas = response.totalDespesas;
     resumo.saldoAtual = response.saldoAtual;
-
-    // Atualiza a lista
     allTransacoes.value = response.transacoes;
   } catch (error) {
+    toast.error("Erro ao carregar as transações.");
     console.error("Erro ao carregar transações:", error);
   } finally {
     loading.value = false;
@@ -417,30 +427,45 @@ const handleModalSubmit = async (payload: any) => {
     loading.value = true;
     if (modal.mode === "add") {
       await transacaoService.criar(payload);
+      toast.success("Lançamento incluído com sucesso!");
     } else {
       await transacaoService.atualizar(payload.id, payload);
+      toast.success("Lançamento atualizado com sucesso!");
     }
     closeModal();
-    await loadData(); // Recarga completa para atualizar saldos e snapshots
-  } catch (error) {
+    await loadData();
+  } catch (error: any) {
+    const msgErro =
+      error.response?.data?.message ||
+      "Ocorreu um erro ao processar o lançamento.";
+    toast.error(msgErro);
     console.error("Erro ao salvar lançamento:", error);
   } finally {
     loading.value = false;
   }
 };
 
-const confirmDelete = async (id: string) => {
-  if (confirm("Tem certeza que deseja remover este lançamento?")) {
-    try {
-      loading.value = true;
-      await transacaoService.remover(id);
-      await loadData();
-    } catch (error) {
-      console.error("Erro ao deletar:", error);
-    } finally {
-      loading.value = false;
-    }
-  }
+// LÓGICA DE EXCLUSÃO
+const confirmDelete = (id: string) => {
+  notify.confirm(
+    "Esta ação não pode ser desfeita. O saldo será recalculado imediatamente.",
+    async () => {
+      try {
+        loading.value = true;
+        await transacaoService.remover(id);
+        toast.success("Lançamento excluído com sucesso!");
+        await loadData();
+      } catch (error: any) {
+        const msgErro =
+          error.response?.data?.message || "Erro ao excluir a transação.";
+        toast.error(msgErro);
+        console.error("Erro ao deletar:", error);
+      } finally {
+        loading.value = false;
+      }
+    },
+    "Remover Lançamento?",
+  );
 };
 
 // Formatadores

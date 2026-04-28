@@ -6,7 +6,7 @@ public class Transacao
 {
     public Guid Id { get; private set; }
     public Guid UsuarioId { get; private set; }
-    public string Descricao { get; private set; } = string.Empty;
+    public string? Descricao { get; private set; }
     public decimal Valor { get; private set; }
     public DateTime Data { get; private set; }
     public string Tipo { get; private set; } = string.Empty;
@@ -31,7 +31,7 @@ public class Transacao
     // Construtor utilizado pela aplicação para criar novas transações
     public Transacao(
         Guid usuarioId,
-        string descricao,
+        string? descricao,
         decimal valor,
         DateTime data,
         string tipo,
@@ -61,7 +61,7 @@ public class Transacao
     }
 
     public void Atualizar(
-        string descricao,
+        string? descricao,
         decimal valor,
         DateTime data,
         string tipo,

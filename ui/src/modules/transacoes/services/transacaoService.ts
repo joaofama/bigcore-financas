@@ -2,16 +2,15 @@ import http from "@/shared/services/http";
 
 export interface Transacao {
   id: string;
-  descricao: string;
+  descricao: string | null;
   valor: number;
   data: string;
   tipo: "R" | "D";
   categoriaId: string;
-  categoriaNome: string;
-  categoriaIcone: string;
-  categoriaPaiId: string;
   categoriaPaiNome: string;
   categoriaPaiIcone: string;
+  subcategoriaNome: string | null;
+  subcategoriaIcone: string | null;
 }
 
 export interface TransacoesMesResponse {

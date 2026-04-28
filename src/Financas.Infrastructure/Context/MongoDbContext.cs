@@ -103,6 +103,7 @@ public class MongoDbContext
                 cm.MapMember(c => c.CategoriaId).SetSerializer(guidSerializer);
                 cm.MapMember(c => c.CategoriaPaiId).SetSerializer(nullableGuidSerializer);
                 cm.MapMember(c => c.Valor).SetSerializer(decimalSerializer);
+                cm.MapMember(c => c.Descricao).SetIgnoreIfNull(false);
             });
         }
     }

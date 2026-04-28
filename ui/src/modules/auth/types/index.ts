@@ -5,4 +5,8 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
+  nome: string;
+  email: string;
+  saldoInicial?: number;
+  dataCadastro?: string;
 }

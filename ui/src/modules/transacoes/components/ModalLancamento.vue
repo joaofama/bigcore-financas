@@ -24,65 +24,83 @@
       </div>
 
       <form class="space-y-5" @submit.prevent="handleSubmit">
-        <div
-          class="grid grid-cols-2 gap-3 p-1.5 bg-[#18181b] rounded-2xl border border-white/5"
-        >
-          <button
-            type="button"
-            @click="formData.tipo = 'R'"
-            :class="
-              formData.tipo === 'R'
-                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/10 shadow-lg'
-                : 'text-gray-600 border-transparent'
-            "
-            class="flex items-center justify-center gap-2.5 py-3.5 rounded-xl font-black uppercase text-xs tracking-[0.15em] transition-all border"
+        <div class="space-y-1">
+          <div
+            class="grid grid-cols-2 gap-3 p-1.5 bg-[#18181b] rounded-2xl border transition-all"
+            :class="errors.tipo ? 'border-red-500/50' : 'border-white/5'"
           >
-            <TrendingUp :size="16" /> Receita
-          </button>
-          <button
-            type="button"
-            @click="formData.tipo = 'D'"
-            :class="
-              formData.tipo === 'D'
-                ? 'bg-red-500/20 text-red-500 border-red-500/10 shadow-lg'
-                : 'text-gray-600 border-transparent'
-            "
-            class="flex items-center justify-center gap-2.5 py-3.5 rounded-xl font-black uppercase text-xs tracking-[0.15em] transition-all border"
+            <button
+              type="button"
+              @click="setTipo('R')"
+              :class="
+                formData.tipo === 'R'
+                  ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/10 shadow-lg'
+                  : 'text-gray-600 border-transparent'
+              "
+              class="flex items-center justify-center gap-2.5 py-3.5 rounded-xl font-black uppercase text-[16px] tracking-widest transition-all border"
+            >
+              <TrendingUp :size="18" /> Receita
+            </button>
+            <button
+              type="button"
+              @click="setTipo('D')"
+              :class="
+                formData.tipo === 'D'
+                  ? 'bg-red-500/20 text-red-500 border-red-500/10 shadow-lg'
+                  : 'text-gray-600 border-transparent'
+              "
+              class="flex items-center justify-center gap-2.5 py-3.5 rounded-xl font-black uppercase text-[16px] tracking-widest transition-all border"
+            >
+              <TrendingDown :size="18" /> Despesa
+            </button>
+          </div>
+          <p
+            v-if="errors.tipo"
+            class="text-[10px] text-red-400 font-bold ml-2 uppercase tracking-wider"
           >
-            <TrendingDown :size="16" /> Despesa
-          </button>
+            {{ errors.tipo }}
+          </p>
         </div>
 
         <div class="relative">
           <label
-            class="text-[9px] font-black text-gray-600 uppercase tracking-widest ml-1 mb-1 block"
+            class="text-[13px] font-black text-gray-600 uppercase tracking-widest ml-1 mb-1 block"
             >Categoria</label
           >
 
           <Combobox v-model="formData.categoriaId">
             <div class="relative">
-              <ComboboxButton class="w-full outline-none text-left">
+              <ComboboxButton
+                class="w-full outline-none text-left"
+                @click="errors.categoriaId = ''"
+              >
                 <div
                   class="modal-input-group flex items-center h-14.5 transition-all"
                   :class="{
-                    'border-[#6366f1]/50 bg-black': formData.categoriaId,
+                    'border-[#6366f1]/50 bg-black shadow-[0_0_15px_rgba(99,102,241,0.1)]':
+                      formData.categoriaId,
+                    'border-red-500/50': errors.categoriaId,
                   }"
                 >
                   <Tag :size="18" class="text-gray-600 shrink-0" />
-
                   <span
                     v-if="formData.categoriaId"
-                    class="flex-1 px-1 text-sm text-white font-medium truncate"
+                    class="flex-1 px-1 text-[13px] text-white font-medium truncate"
                   >
                     {{ findCategoryName(formData.categoriaId) }}
                   </span>
-                  <span v-else class="flex-1 px-1 text-sm text-gray-700">
+                  <span v-else class="flex-1 px-1 text-[13px] text-gray-700">
                     Selecione uma opção...
                   </span>
-
                   <ChevronDown :size="16" class="text-gray-600 shrink-0" />
                 </div>
               </ComboboxButton>
+              <p
+                v-if="errors.categoriaId"
+                class="text-[10px] text-red-400 font-bold mt-1 ml-1 uppercase tracking-wider"
+              >
+                {{ errors.categoriaId }}
+              </p>
 
               <transition
                 enter-active-class="transition duration-100 ease-out"
@@ -109,7 +127,7 @@
                         ref="searchInput"
                         v-model="query"
                         type="text"
-                        class="bg-transparent text-xs text-white outline-none w-full placeholder:text-gray-800"
+                        class="bg-transparent text-[13px] text-white outline-none w-full placeholder:text-gray-800"
                         placeholder="Pesquisar categoria..."
                         @keydown.stop
                       />
@@ -125,16 +143,22 @@
                     </div>
 
                     <template v-if="formData.tipo === 'D'">
-                      <div v-for="pai in filteredCategories" :key="pai.id">
+                      <div
+                        v-for="pai in filteredCategories"
+                        :key="pai.id"
+                        class="border-b border-white/5 last:border-0"
+                      >
                         <div
-                          class="px-4 py-2 text-[9px] font-black text-gray-600 bg-white/1 uppercase tracking-widest flex items-center gap-2"
+                          class="px-4 py-3 text-[13px] font-black text-indigo-400/90 bg-white/3 uppercase tracking-[0.15em] flex items-center gap-2.5"
                         >
                           <component
                             :is="getLucideIcon(pai.icone)"
-                            :size="12"
+                            :size="13"
+                            class="opacity-80"
                           />
                           {{ pai.nome }}
                         </div>
+
                         <ComboboxOption
                           v-for="sub in pai.subcategorias"
                           :key="sub.id"
@@ -147,7 +171,7 @@
                                 ? 'bg-[#6366f1] text-white'
                                 : 'text-gray-400',
                             ]"
-                            class="px-8 py-3.5 text-xs font-bold flex items-center justify-between cursor-pointer transition-colors"
+                            class="px-10 py-3.5 text-[13px] font-bold flex items-center justify-between cursor-pointer transition-colors"
                           >
                             <span class="flex items-center gap-2">
                               <component
@@ -176,7 +200,7 @@
                               ? 'bg-[#6366f1] text-white'
                               : 'text-gray-400',
                           ]"
-                          class="px-4 py-3.5 text-xs font-bold flex items-center justify-between cursor-pointer transition-colors"
+                          class="px-4 py-3.5 text-[13px] font-bold flex items-center justify-between cursor-pointer transition-colors"
                         >
                           <span class="flex items-center gap-3">
                             <component
@@ -199,48 +223,65 @@
         <div class="grid grid-cols-2 gap-4">
           <div class="flex flex-col gap-1">
             <label
-              class="text-[9px] font-black text-gray-600 uppercase tracking-widest ml-1"
+              class="text-[13px] font-black text-gray-600 uppercase tracking-widest ml-1"
               >Data</label
             >
-            <div class="modal-input-group h-14.5">
+            <div
+              class="modal-input-group h-14.5"
+              :class="errors.data ? 'border-red-500/50' : ''"
+            >
               <Calendar :size="18" class="text-gray-600" />
               <input
                 type="date"
                 v-model="formData.data"
-                required
+                @input="errors.data = ''"
                 class="modal-input"
               />
             </div>
+            <p
+              v-if="errors.data"
+              class="text-[10px] text-red-400 font-bold ml-1 uppercase tracking-wider"
+            >
+              {{ errors.data }}
+            </p>
           </div>
+
           <div class="flex flex-col gap-1">
             <label
-              class="text-[9px] font-black text-gray-600 uppercase tracking-widest ml-1"
+              class="text-[13px] font-black text-gray-600 uppercase tracking-widest ml-1"
               >Valor</label
             >
-            <div class="modal-input-group h-14.5">
-              <span class="text-xs font-black text-gray-600">R$</span>
+            <div
+              class="modal-input-group h-14.5"
+              :class="errors.valor ? 'border-red-500/50' : ''"
+            >
               <input
-                type="number"
-                step="0.01"
+                type="text"
                 v-model="formData.valor"
+                @input="handleValorInput"
                 placeholder="0,00"
-                required
                 class="modal-input text-white font-bold"
               />
             </div>
+            <p
+              v-if="errors.valor"
+              class="text-[10px] text-red-400 font-bold ml-1 uppercase tracking-wider"
+            >
+              {{ errors.valor }}
+            </p>
           </div>
         </div>
 
         <div class="flex flex-col gap-1">
           <label
-            class="text-[9px] font-black text-gray-600 uppercase tracking-widest ml-1"
+            class="text-[13px] font-black text-gray-600 uppercase tracking-widest ml-1"
             >Descrição Opcional</label
           >
           <div class="modal-input-group h-14.5">
             <input
               type="text"
               v-model="formData.descricao"
-              placeholder="Ex: Mercado, Freelance..."
+              placeholder="Ex: Mercado, Aluguer, Freelance..."
               class="modal-input"
             />
           </div>
@@ -250,13 +291,13 @@
           <button
             type="button"
             @click="$emit('close')"
-            class="flex-1 py-4 text-gray-500 font-bold hover:text-white transition-colors uppercase text-[10px] tracking-widest"
+            class="flex-1 py-4 text-gray-500 font-bold hover:text-white transition-colors uppercase text-[13px] tracking-widest"
           >
             Cancelar
           </button>
           <button
             type="submit"
-            class="flex-2 bg-[#6366f1] hover:bg-[#4f46e5] text-white py-4 rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/20 active:scale-95 uppercase text-[10px] tracking-widest"
+            class="flex-2 bg-[#6366f1] hover:bg-[#4f46e5] text-white py-4 rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/20 active:scale-95 uppercase text-[13px] tracking-widest"
           >
             Confirmar Lançamento
           </button>
@@ -267,7 +308,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from "vue";
+import { ref, computed, watch, onMounted, nextTick, reactive } from "vue";
 import {
   Combobox,
   ComboboxButton,
@@ -302,28 +343,71 @@ const searchInput = ref<HTMLInputElement | null>(null);
 const allCategories = ref<CategoriaResponse[]>([]);
 const query = ref("");
 
-// Fábrica de estado inicial para facilitar o reset
+const errors = reactive({
+  tipo: "",
+  categoriaId: "",
+  data: "",
+  valor: "",
+});
+
 const getInitialState = () => ({
   id: "",
   tipo: "D" as "R" | "D",
   data: new Date().toISOString().substring(0, 10),
   descricao: "",
-  valor: "" as any,
+  valor: "" as string,
   categoriaId: "",
 });
 
 const formData = ref(getInitialState());
 
-// ⚡ SOLUÇÃO DO RESET E CARREGAMENTO
+const formatCurrency = (value: number | string) => {
+  const amount =
+    typeof value === "number"
+      ? value
+      : parseFloat(value.replace(/\D/g, "")) / 100;
+  if (isNaN(amount)) return "";
+  return new Intl.NumberFormat("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+};
+
+const handleValorInput = (e: Event) => {
+  const input = e.target as HTMLInputElement;
+  let value = input.value.replace(/\D/g, "");
+
+  if (!value) {
+    formData.value.valor = "";
+    return;
+  }
+
+  formData.value.valor = formatCurrency(value);
+  errors.valor = "";
+};
+
+const setTipo = (t: "R" | "D") => {
+  formData.value.tipo = t;
+  errors.tipo = "";
+};
+
+const clearErrors = () => {
+  errors.tipo = "";
+  errors.categoriaId = "";
+  errors.data = "";
+  errors.valor = "";
+};
+
 watch(
   () => props.show,
   (isShowing) => {
     if (isShowing) {
+      clearErrors();
       if (props.mode === "edit" && props.transactionData) {
-        // Popula com dados existentes
-        formData.value = { ...props.transactionData };
+        const data = { ...props.transactionData };
+        data.valor = formatCurrency(data.valor);
+        formData.value = data;
       } else {
-        // Limpa tudo para novo lançamento
         formData.value = getInitialState();
       }
       query.value = "";
@@ -332,7 +416,6 @@ watch(
   { immediate: true },
 );
 
-// Foco automático na busca
 const focusSearch = () => {
   nextTick(() => {
     searchInput.value?.focus();
@@ -373,7 +456,6 @@ const findCategoryName = (id: string) => {
   return "Selecione...";
 };
 
-// Se mudar o tipo (R/D), reseta a categoria selecionada (apenas no modo ADD)
 watch(
   () => formData.value.tipo,
   (newVal, oldVal) => {
@@ -384,14 +466,48 @@ watch(
   },
 );
 
-const handleSubmit = () => {
-  if (!formData.value.categoriaId) {
-    alert("Selecione uma categoria!");
-    return;
+const validate = () => {
+  clearErrors();
+  let isValid = true;
+
+  if (!formData.value.tipo) {
+    errors.tipo = "Selecione o tipo";
+    isValid = false;
   }
+  if (!formData.value.categoriaId) {
+    errors.categoriaId = "Selecione a categoria";
+    isValid = false;
+  }
+  if (!formData.value.data) {
+    errors.data = "Informe a data";
+    isValid = false;
+  }
+
+  const rawValue = formData.value.valor
+    .toString()
+    .replace(/\./g, "")
+    .replace(",", ".");
+  const valorNum = parseFloat(rawValue);
+
+  if (!formData.value.valor || isNaN(valorNum) || valorNum <= 0) {
+    errors.valor = "Valor inválido";
+    isValid = false;
+  }
+
+  return isValid;
+};
+
+const handleSubmit = () => {
+  if (!validate()) return;
+
+  const cleanValor =
+    typeof formData.value.valor === "string"
+      ? parseFloat(formData.value.valor.replace(/\./g, "").replace(",", "."))
+      : formData.value.valor;
+
   emit("submit", {
     ...formData.value,
-    valor: parseFloat(formData.value.valor),
+    valor: cleanValor,
   });
 };
 </script>
@@ -403,7 +519,8 @@ const handleSubmit = () => {
   @apply bg-[#18181b] p-4 rounded-2xl border border-white/5 flex items-center gap-3 transition-all focus-within:border-[#6366f1] focus-within:bg-black;
 }
 .modal-input {
-  @apply flex-1 bg-transparent text-sm text-gray-200 outline-none placeholder:text-gray-700;
+  /* VALORES DOS INPUTS PADRONIZADOS EM 13px */
+  @apply flex-1 bg-transparent text-[13px] text-gray-200 outline-none placeholder:text-gray-700;
 }
 .custom-scroll::-webkit-scrollbar {
   width: 4px;

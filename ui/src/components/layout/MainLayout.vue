@@ -22,12 +22,14 @@
             >
               USUÁRIO
             </p>
-            <p class="text-white text-sm font-bold">demofinancas</p>
+            <p class="text-white text-sm font-bold">
+              {{ authStore.userName || "Convidado" }}
+            </p>
           </div>
           <div
             class="w-10 h-10 rounded-full bg-[#18181b] border border-white/10 flex items-center justify-center text-xs font-bold text-gray-500"
           >
-            DF
+            {{ userInitials }}
           </div>
         </div>
       </header>
@@ -46,5 +48,21 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import AppSidebar from "@/components/layout/AppSidebar.vue";
+import { useAuthStore } from "@/modules/auth/stores/authStore"; // Ajuste o caminho se necessário
+
+const authStore = useAuthStore();
+
+// ⚡ Lógica para extrair as iniciais (ex: "Usuário de Teste" -> "UT")
+const userInitials = computed(() => {
+  const name = authStore.userName;
+  if (!name) return "??";
+
+  const parts = name.split(" ").filter((p) => p.length > 0);
+  if (parts.length === 0) return "??";
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+});
 </script>
