@@ -279,6 +279,7 @@
       :show="modal.show"
       :mode="modal.mode"
       :transactionData="modal.data"
+      :categorias="categoriasList"
       @close="closeModal"
       @submit="handleModalSubmit"
     />
@@ -288,6 +289,11 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, reactive } from "vue";
 import { transacaoService, type Transacao } from "../services/transacaoService";
+
+// ⚡ IMPORT ATUALIZADO PARA O SERVIÇO UNIFICADO
+import { categoriaService } from "@/modules/categorias/services/categoriaService";
+import type { Categoria } from "@/modules/categorias/types";
+
 import {
   PlusCircle,
   Pencil,
@@ -321,6 +327,7 @@ const search = ref("");
 const currentPage = ref(1);
 const perPage = ref(10);
 const allTransacoes = ref<Transacao[]>([]);
+const categoriasList = ref<Categoria[]>([]); // Estado das categorias carregadas antecipadamente
 const resumo = reactive({
   saldoInicial: 0,
   totalReceitas: 0,
@@ -371,6 +378,15 @@ const paginatedData = computed(() => {
   return filteredData.value.slice(start, start + perPage.value);
 });
 
+// ⚡ CARREGAMENTO USANDO A NOVA FUNÇÃO UNIFICADA
+const loadCategorias = async () => {
+  try {
+    categoriasList.value = await categoriaService.getCategorias();
+  } catch (error) {
+    console.error("Erro ao carregar categorias para o modal:", error);
+  }
+};
+
 // Carregamento de Dados da API
 const loadData = async () => {
   loading.value = true;
@@ -413,8 +429,19 @@ const openAddModal = () => {
 };
 
 const openEditModal = (transacao: Transacao) => {
+  console.log(
+    "📦 Dados recebidos para edição:",
+    JSON.parse(JSON.stringify(transacao)),
+  );
+
   modal.mode = "edit";
-  modal.data = { ...transacao, data: transacao.data.substring(0, 10) };
+
+  // Criamos o objeto que vai para o modal
+  modal.data = {
+    ...transacao,
+    data: transacao.data.substring(0, 10),
+  };
+
   modal.show = true;
 };
 
@@ -478,7 +505,10 @@ const formatDate = (d: string) => {
   return date.toLocaleDateString("pt-BR", { timeZone: "UTC" });
 };
 
-onMounted(loadData);
+onMounted(() => {
+  loadData();
+  loadCategorias();
+});
 </script>
 
 <style scoped>

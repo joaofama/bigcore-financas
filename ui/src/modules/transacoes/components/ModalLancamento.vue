@@ -12,7 +12,7 @@
       class="relative bg-[#111114] w-full max-w-lg rounded-3xl border border-white/5 shadow-2xl p-8 animate-in zoom-in-95 duration-200"
     >
       <div class="flex items-center justify-between mb-8">
-        <h2 class="text-white text-xl font-black tracking-tight">
+        <h2 class="text-white text-[17px] font-black tracking-tight uppercase">
           {{ mode === "add" ? "Novo Lançamento" : "Editar Lançamento" }}
         </h2>
         <button
@@ -26,8 +26,7 @@
       <form class="space-y-5" @submit.prevent="handleSubmit">
         <div class="space-y-1">
           <div
-            class="grid grid-cols-2 gap-3 p-1.5 bg-[#18181b] rounded-2xl border transition-all"
-            :class="errors.tipo ? 'border-red-500/50' : 'border-white/5'"
+            class="grid grid-cols-2 gap-3 p-1.5 bg-[#18181b] rounded-2xl border border-white/5"
           >
             <button
               type="button"
@@ -54,235 +53,161 @@
               <TrendingDown :size="18" /> Despesa
             </button>
           </div>
-          <p
-            v-if="errors.tipo"
-            class="text-[10px] text-red-400 font-bold ml-2 uppercase tracking-wider"
-          >
-            {{ errors.tipo }}
-          </p>
         </div>
 
         <div class="relative">
           <label
-            class="text-[13px] font-black text-gray-600 uppercase tracking-widest ml-1 mb-1 block"
+            class="block text-[13px] font-black text-gray-600 uppercase tracking-widest ml-1 mb-1"
             >Categoria</label
           >
-
-          <Combobox v-model="formData.categoriaId">
-            <div class="relative">
-              <ComboboxButton
-                class="w-full outline-none text-left"
-                @click="errors.categoriaId = ''"
+          <button
+            type="button"
+            @click="isDropdownOpen = !isDropdownOpen"
+            class="w-full bg-[#18181b] border rounded-2xl px-4 h-13 flex justify-between items-center text-left transition-all focus:outline-none"
+            :class="[
+              isDropdownOpen ? 'border-[#6366f1]' : 'border-white/5',
+              errors.categoriaId ? 'border-red-500/50' : '',
+            ]"
+          >
+            <div class="flex items-center gap-3 truncate text-[13px]">
+              <Tag :size="18" class="text-gray-600 shrink-0" />
+              <span
+                :class="
+                  selectedCategoriaNome
+                    ? 'text-white font-bold'
+                    : 'text-gray-700'
+                "
+                class="truncate"
               >
-                <div
-                  class="modal-input-group flex items-center h-14.5 transition-all"
-                  :class="{
-                    'border-[#6366f1]/50 bg-black shadow-[0_0_15px_rgba(99,102,241,0.1)]':
-                      formData.categoriaId,
-                    'border-red-500/50': errors.categoriaId,
-                  }"
-                >
-                  <Tag :size="18" class="text-gray-600 shrink-0" />
-                  <span
-                    v-if="formData.categoriaId"
-                    class="flex-1 px-1 text-[13px] text-white font-medium truncate"
-                  >
-                    {{ findCategoryName(formData.categoriaId) }}
-                  </span>
-                  <span v-else class="flex-1 px-1 text-[13px] text-gray-700">
-                    Selecione uma opção...
-                  </span>
-                  <ChevronDown :size="16" class="text-gray-600 shrink-0" />
-                </div>
-              </ComboboxButton>
-              <p
-                v-if="errors.categoriaId"
-                class="text-[10px] text-red-400 font-bold mt-1 ml-1 uppercase tracking-wider"
-              >
-                {{ errors.categoriaId }}
-              </p>
-
-              <transition
-                enter-active-class="transition duration-100 ease-out"
-                enter-from-class="transform scale-95 opacity-0"
-                enter-to-class="transform scale-100 opacity-100"
-                leave-active-class="transition duration-75 ease-in"
-                leave-from-class="transform scale-100 opacity-100"
-                leave-to-class="transform scale-95 opacity-0"
-                @after-enter="focusSearch"
-              >
-                <ComboboxOptions
-                  class="absolute z-50 top-[calc(100%+8px)] left-0 w-full bg-[#18181b] border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
-                >
-                  <div
-                    class="p-3 border-b border-white/5 bg-black/20"
-                    @click.stop
-                    @mousedown.stop
-                  >
-                    <div
-                      class="flex items-center gap-2 bg-black px-3 py-2.5 rounded-lg border border-white/5 focus-within:border-[#6366f1]/50"
-                    >
-                      <Search :size="14" class="text-gray-700" />
-                      <input
-                        ref="searchInput"
-                        v-model="query"
-                        type="text"
-                        class="bg-transparent text-[13px] text-white outline-none w-full placeholder:text-gray-800"
-                        placeholder="Pesquisar categoria..."
-                        @keydown.stop
-                      />
-                    </div>
-                  </div>
-
-                  <div class="max-h-60 overflow-y-auto custom-scroll">
-                    <div
-                      v-if="filteredCategories.length === 0"
-                      class="p-4 text-center text-[10px] text-gray-600 font-black uppercase"
-                    >
-                      Nenhuma categoria encontrada
-                    </div>
-
-                    <template v-if="formData.tipo === 'D'">
-                      <div
-                        v-for="pai in filteredCategories"
-                        :key="pai.id"
-                        class="border-b border-white/5 last:border-0"
-                      >
-                        <div
-                          class="px-4 py-3 text-[13px] font-black text-indigo-400/90 bg-white/3 uppercase tracking-[0.15em] flex items-center gap-2.5"
-                        >
-                          <component
-                            :is="getLucideIcon(pai.icone)"
-                            :size="13"
-                            class="opacity-80"
-                          />
-                          {{ pai.nome }}
-                        </div>
-
-                        <ComboboxOption
-                          v-for="sub in pai.subcategorias"
-                          :key="sub.id"
-                          :value="sub.id"
-                          v-slot="{ active, selected }"
-                        >
-                          <li
-                            :class="[
-                              active
-                                ? 'bg-[#6366f1] text-white'
-                                : 'text-gray-400',
-                            ]"
-                            class="px-10 py-3.5 text-[13px] font-bold flex items-center justify-between cursor-pointer transition-colors"
-                          >
-                            <span class="flex items-center gap-2">
-                              <component
-                                :is="getLucideIcon(sub.icone)"
-                                :size="14"
-                                class="opacity-50"
-                              />
-                              {{ sub.nome }}
-                            </span>
-                            <Check v-if="selected" :size="14" />
-                          </li>
-                        </ComboboxOption>
-                      </div>
-                    </template>
-
-                    <template v-else>
-                      <ComboboxOption
-                        v-for="cat in filteredCategories"
-                        :key="cat.id"
-                        :value="cat.id"
-                        v-slot="{ active, selected }"
-                      >
-                        <li
-                          :class="[
-                            active
-                              ? 'bg-[#6366f1] text-white'
-                              : 'text-gray-400',
-                          ]"
-                          class="px-4 py-3.5 text-[13px] font-bold flex items-center justify-between cursor-pointer transition-colors"
-                        >
-                          <span class="flex items-center gap-3">
-                            <component
-                              :is="getLucideIcon(cat.icone)"
-                              :size="16"
-                            />
-                            {{ cat.nome }}
-                          </span>
-                          <Check v-if="selected" :size="14" />
-                        </li>
-                      </ComboboxOption>
-                    </template>
-                  </div>
-                </ComboboxOptions>
-              </transition>
+                {{ selectedCategoriaNome || "Selecione uma opção..." }}
+              </span>
             </div>
-          </Combobox>
+            <ChevronDown
+              :size="16"
+              class="text-gray-600 transition-transform duration-200"
+              :class="{ 'rotate-180': isDropdownOpen }"
+            />
+          </button>
+          <p
+            v-if="errors.categoriaId"
+            class="text-[13px] text-red-400 font-bold mt-1 ml-1 uppercase tracking-wider"
+          >
+            {{ errors.categoriaId }}
+          </p>
+
+          <div
+            v-if="isDropdownOpen"
+            class="absolute z-50 top-[calc(100%+8px)] left-0 w-full bg-[#1a1a1f] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in slide-in-from-top-2"
+          >
+            <div class="p-3 border-b border-white/5 bg-black/20">
+              <div
+                class="relative flex items-center gap-2 bg-black px-3 py-2 rounded-lg border border-white/5 focus-within:border-[#6366f1]/50"
+              >
+                <Search :size="14" class="text-gray-700" />
+                <input
+                  v-model="query"
+                  type="text"
+                  placeholder="Pesquisar..."
+                  class="w-full bg-transparent text-[13px] text-white outline-none"
+                  @click.stop
+                />
+              </div>
+            </div>
+            <div class="max-h-64 overflow-y-auto custom-scroll p-1">
+              <div
+                v-if="categoriasFiltradas.length === 0"
+                class="p-4 text-center text-gray-600 text-[13px] font-black uppercase"
+              >
+                Nada encontrado
+              </div>
+              <button
+                v-for="cat in categoriasFiltradas"
+                :key="cat.id"
+                type="button"
+                @click="selecionarCategoria(cat.id, cat.nome)"
+                class="w-full text-left px-4 py-3 flex items-center gap-3 transition-colors rounded-xl group"
+                :class="[
+                  cat.isSub
+                    ? 'pl-10 text-gray-400 font-medium'
+                    : 'font-black text-indigo-400 bg-white/2 mt-1 first:mt-0 uppercase text-[11px] tracking-widest pointer-events-none',
+                  formData.categoriaId === cat.id
+                    ? 'bg-[#6366f1] text-white'
+                    : 'hover:bg-white/5',
+                ]"
+              >
+                <component
+                  :is="getLucideIcon(cat.icone)"
+                  :size="cat.isSub ? 14 : 12"
+                />
+                <span class="truncate text-[13px]">{{ cat.nome }}</span>
+                <Check
+                  v-if="formData.categoriaId === cat.id"
+                  :size="14"
+                  class="ml-auto"
+                />
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
-          <div class="flex flex-col gap-1">
+          <div>
             <label
-              class="text-[13px] font-black text-gray-600 uppercase tracking-widest ml-1"
+              class="block text-[13px] font-black text-gray-600 uppercase tracking-widest ml-1 mb-1"
               >Data</label
             >
             <div
-              class="modal-input-group h-14.5"
+              class="modal-input-group h-13"
               :class="errors.data ? 'border-red-500/50' : ''"
             >
               <Calendar :size="18" class="text-gray-600" />
-              <input
-                type="date"
-                v-model="formData.data"
-                @input="errors.data = ''"
-                class="modal-input"
-              />
+              <input type="date" v-model="formData.data" class="modal-input" />
             </div>
             <p
               v-if="errors.data"
-              class="text-[10px] text-red-400 font-bold ml-1 uppercase tracking-wider"
+              class="text-[13px] text-red-400 font-bold mt-1 ml-1 uppercase tracking-wider"
             >
               {{ errors.data }}
             </p>
           </div>
 
-          <div class="flex flex-col gap-1">
+          <div>
             <label
-              class="text-[13px] font-black text-gray-600 uppercase tracking-widest ml-1"
+              class="block text-[13px] font-black text-gray-600 uppercase tracking-widest ml-1 mb-1"
               >Valor</label
             >
             <div
-              class="modal-input-group h-14.5"
+              class="modal-input-group h-13"
               :class="errors.valor ? 'border-red-500/50' : ''"
             >
               <input
                 type="text"
                 v-model="formData.valor"
                 @input="handleValorInput"
-                placeholder="0,00"
                 class="modal-input text-white font-bold"
+                placeholder="0,00"
               />
             </div>
             <p
               v-if="errors.valor"
-              class="text-[10px] text-red-400 font-bold ml-1 uppercase tracking-wider"
+              class="text-[13px] text-red-400 font-bold mt-1 ml-1 uppercase tracking-wider"
             >
               {{ errors.valor }}
             </p>
           </div>
         </div>
 
-        <div class="flex flex-col gap-1">
+        <div>
           <label
-            class="text-[13px] font-black text-gray-600 uppercase tracking-widest ml-1"
+            class="block text-[13px] font-black text-gray-600 uppercase tracking-widest ml-1 mb-1"
             >Descrição Opcional</label
           >
-          <div class="modal-input-group h-14.5">
+          <div class="modal-input-group h-13">
             <input
               type="text"
               v-model="formData.descricao"
-              placeholder="Ex: Mercado, Aluguer, Freelance..."
               class="modal-input"
+              placeholder="Ex: Mercado, Aluguel..."
             />
           </div>
         </div>
@@ -291,15 +216,15 @@
           <button
             type="button"
             @click="$emit('close')"
-            class="flex-1 py-4 text-gray-500 font-bold hover:text-white transition-colors uppercase text-[13px] tracking-widest"
+            class="flex-1 py-4 text-gray-500 font-bold hover:text-white uppercase text-[13px] tracking-widest transition-colors"
           >
             Cancelar
           </button>
           <button
             type="submit"
-            class="flex-2 bg-[#6366f1] hover:bg-[#4f46e5] text-white py-4 rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/20 active:scale-95 uppercase text-[13px] tracking-widest"
+            class="flex-2 bg-[#6366f1] hover:bg-[#4f46e5] text-white py-4 rounded-xl font-black shadow-lg shadow-indigo-500/20 active:scale-95 uppercase text-[13px] tracking-widest transition-all"
           >
-            Confirmar Lançamento
+            {{ mode === "add" ? "Confirmar" : "Salvar" }}
           </button>
         </div>
       </form>
@@ -308,13 +233,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick, reactive } from "vue";
-import {
-  Combobox,
-  ComboboxButton,
-  ComboboxOptions,
-  ComboboxOption,
-} from "@headlessui/vue";
+import { ref, computed, watch, reactive } from "vue";
 import {
   X,
   TrendingUp,
@@ -325,190 +244,163 @@ import {
   Search,
   Check,
 } from "lucide-vue-next";
-import {
-  categoriaService,
-  type CategoriaResponse,
-} from "../services/categoriaService";
 import { getLucideIcon } from "@/shared/utils/iconMap";
+import type { Categoria } from "@/modules/categorias/types";
 
 const props = defineProps<{
   show: boolean;
   mode: "add" | "edit";
   transactionData?: any;
+  categorias: Categoria[];
 }>();
 
 const emit = defineEmits(["close", "submit"]);
 
-const searchInput = ref<HTMLInputElement | null>(null);
-const allCategories = ref<CategoriaResponse[]>([]);
+const isDropdownOpen = ref(false);
 const query = ref("");
+const selectedCategoriaNome = ref("");
+const errors = reactive({ categoriaId: "", data: "", valor: "" });
 
-const errors = reactive({
-  tipo: "",
-  categoriaId: "",
-  data: "",
-  valor: "",
-});
-
-const getInitialState = () => ({
+const formData = ref({
   id: "",
   tipo: "D" as "R" | "D",
-  data: new Date().toISOString().substring(0, 10),
+  data: "",
   descricao: "",
-  valor: "" as string,
+  valor: "",
   categoriaId: "",
 });
 
-const formData = ref(getInitialState());
-
-const formatCurrency = (value: number | string) => {
-  const amount =
-    typeof value === "number"
-      ? value
-      : parseFloat(value.replace(/\D/g, "")) / 100;
-  if (isNaN(amount)) return "";
-  return new Intl.NumberFormat("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-};
-
-const handleValorInput = (e: Event) => {
-  const input = e.target as HTMLInputElement;
-  let value = input.value.replace(/\D/g, "");
-
-  if (!value) {
-    formData.value.valor = "";
-    return;
-  }
-
-  formData.value.valor = formatCurrency(value);
-  errors.valor = "";
-};
-
-const setTipo = (t: "R" | "D") => {
-  formData.value.tipo = t;
-  errors.tipo = "";
-};
-
 const clearErrors = () => {
-  errors.tipo = "";
   errors.categoriaId = "";
   errors.data = "";
   errors.valor = "";
 };
 
+const findName = (id: string) => {
+  if (!id) return "";
+  const tid = id.toLowerCase();
+  for (const c of props.categorias) {
+    if (c.id.toLowerCase() === tid) return c.nome;
+    const s = c.subcategorias?.find((sub) => sub.id.toLowerCase() === tid);
+    if (s) return s.nome;
+  }
+  return "";
+};
+
+const sync = () => {
+  clearErrors();
+  if (props.mode === "edit" && props.transactionData) {
+    const d = props.transactionData;
+    formData.value = {
+      id: d.id,
+      tipo: d.tipo,
+      data: d.data.substring(0, 10),
+      descricao: d.descricao || "",
+      valor: formatCurrency(d.valor),
+      categoriaId: d.categoriaId,
+    };
+    selectedCategoriaNome.value = findName(d.categoriaId);
+  } else {
+    formData.value = {
+      id: "",
+      tipo: "D",
+      data: new Date().toISOString().substring(0, 10),
+      descricao: "",
+      valor: "",
+      categoriaId: "",
+    };
+    selectedCategoriaNome.value = "";
+  }
+};
+
 watch(
   () => props.show,
-  (isShowing) => {
-    if (isShowing) {
-      clearErrors();
-      if (props.mode === "edit" && props.transactionData) {
-        const data = { ...props.transactionData };
-        data.valor = formatCurrency(data.valor);
-        formData.value = data;
-      } else {
-        formData.value = getInitialState();
-      }
-      query.value = "";
-    }
+  (val) => {
+    if (val) sync();
   },
   { immediate: true },
 );
 
-const focusSearch = () => {
-  nextTick(() => {
-    searchInput.value?.focus();
-  });
-};
-
-onMounted(async () => {
-  try {
-    allCategories.value = await categoriaService.getCategorias();
-  } catch (e) {
-    console.error("Erro ao carregar categorias no modal:", e);
-  }
-});
-
-const filteredCategories = computed(() => {
-  const typeFiltered = allCategories.value.filter(
-    (cat) => cat.tipo === formData.value.tipo,
-  );
-  if (query.value === "") return typeFiltered;
-
-  const searchTerm = query.value.toLowerCase();
-  return typeFiltered.filter((cat) => {
-    const matchPai = cat.nome.toLowerCase().includes(searchTerm);
-    const matchFilha = cat.subcategorias?.some((sub) =>
-      sub.nome.toLowerCase().includes(searchTerm),
+const categoriasFiltradas = computed(() => {
+  const base = props.categorias.filter((c) => c.tipo === formData.value.tipo);
+  const q = query.value.toLowerCase();
+  const res: any[] = [];
+  base.forEach((cat) => {
+    const mPai = cat.nome.toLowerCase().includes(q);
+    const mSubs = (cat.subcategorias || []).filter((s) =>
+      s.nome.toLowerCase().includes(q),
     );
-    return matchPai || matchFilha;
+    if (formData.value.tipo === "D") {
+      if (mPai || mSubs.length > 0) {
+        res.push({
+          id: cat.id,
+          nome: cat.nome,
+          icone: cat.icone,
+          isSub: false,
+        });
+        const filhas = mPai ? cat.subcategorias || [] : mSubs;
+        filhas.forEach((s) =>
+          res.push({ id: s.id, nome: s.nome, icone: s.icone, isSub: true }),
+        );
+      }
+    } else if (mPai)
+      res.push({ id: cat.id, nome: cat.nome, icone: cat.icone, isSub: false });
   });
+  return res;
 });
 
-const findCategoryName = (id: string) => {
-  if (!id) return "";
-  for (const cat of allCategories.value) {
-    if (cat.id === id) return cat.nome;
-    const sub = cat.subcategorias?.find((s) => s.id === id);
-    if (sub) return sub.nome;
-  }
-  return "Selecione...";
+const selecionarCategoria = (id: string, nome: string) => {
+  formData.value.categoriaId = id;
+  selectedCategoriaNome.value = nome;
+  isDropdownOpen.value = false;
+  errors.categoriaId = "";
 };
 
-watch(
-  () => formData.value.tipo,
-  (newVal, oldVal) => {
-    if (props.show && props.mode === "add" && newVal !== oldVal) {
-      formData.value.categoriaId = "";
-      query.value = "";
-    }
-  },
-);
+const setTipo = (t: "R" | "D") => {
+  formData.value.tipo = t;
+  formData.value.categoriaId = "";
+  selectedCategoriaNome.value = "";
+};
+
+const formatCurrency = (v: any) => {
+  const n =
+    typeof v === "number"
+      ? v
+      : parseFloat(v?.toString().replace(/\D/g, "") || "0") / 100;
+  return new Intl.NumberFormat("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n);
+};
+
+const handleValorInput = (e: any) => {
+  formData.value.valor = formatCurrency(e.target.value);
+  errors.valor = "";
+};
 
 const validate = () => {
-  clearErrors();
   let isValid = true;
-
-  if (!formData.value.tipo) {
-    errors.tipo = "Selecione o tipo";
-    isValid = false;
-  }
   if (!formData.value.categoriaId) {
-    errors.categoriaId = "Selecione a categoria";
+    errors.categoriaId = "Obrigatório";
     isValid = false;
   }
   if (!formData.value.data) {
-    errors.data = "Informe a data";
+    errors.data = "Obrigatório";
     isValid = false;
   }
-
-  const rawValue = formData.value.valor
-    .toString()
-    .replace(/\./g, "")
-    .replace(",", ".");
-  const valorNum = parseFloat(rawValue);
-
-  if (!formData.value.valor || isNaN(valorNum) || valorNum <= 0) {
-    errors.valor = "Valor inválido";
+  if (!formData.value.valor || formData.value.valor === "0,00") {
+    errors.valor = "Obrigatório";
     isValid = false;
   }
-
   return isValid;
 };
 
 const handleSubmit = () => {
   if (!validate()) return;
-
-  const cleanValor =
-    typeof formData.value.valor === "string"
-      ? parseFloat(formData.value.valor.replace(/\./g, "").replace(",", "."))
-      : formData.value.valor;
-
-  emit("submit", {
-    ...formData.value,
-    valor: cleanValor,
-  });
+  const val = parseFloat(
+    formData.value.valor.replace(/\./g, "").replace(",", "."),
+  );
+  emit("submit", { ...formData.value, valor: val });
 };
 </script>
 
@@ -516,17 +408,21 @@ const handleSubmit = () => {
 @reference "tailwindcss";
 
 .modal-input-group {
-  @apply bg-[#18181b] p-4 rounded-2xl border border-white/5 flex items-center gap-3 transition-all focus-within:border-[#6366f1] focus-within:bg-black;
+  @apply bg-[#18181b] px-4 rounded-2xl border border-white/5 flex items-center gap-3 transition-all focus-within:border-[#6366f1]/50;
 }
+
 .modal-input {
-  /* VALORES DOS INPUTS PADRONIZADOS EM 13px */
-  @apply flex-1 bg-transparent text-[13px] text-gray-200 outline-none placeholder:text-gray-700;
+  @apply flex-1 bg-transparent text-[13px] text-gray-200 outline-none placeholder:text-gray-700 h-full;
 }
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+  opacity: 0.5;
+}
+
 .custom-scroll::-webkit-scrollbar {
   width: 4px;
-}
-.custom-scroll::-webkit-scrollbar-track {
-  background: transparent;
 }
 .custom-scroll::-webkit-scrollbar-thumb {
   background: #333;

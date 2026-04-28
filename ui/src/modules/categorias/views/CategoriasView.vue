@@ -44,7 +44,7 @@ const categoriaEmEdicao = ref<Categoria | null>(null); // Guarda os dados para e
 // --- Lógica de Carga ---
 const loadCategories = async () => {
   try {
-    categories.value = await categoriaService.getAll();
+    categories.value = await categoriaService.getCategorias();
   } catch (error) {
     toast.error("Erro ao carregar as categorias.");
     console.error("Erro ao carregar categorias:", error);

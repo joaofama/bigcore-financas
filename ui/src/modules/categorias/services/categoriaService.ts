@@ -2,19 +2,26 @@ import http from "@/shared/services/http";
 import type { Categoria } from "../types";
 
 export const categoriaService = {
-  // Busca todas as categorias do usuário (formato de árvore para a listagem)
-  async getAll(): Promise<Categoria[]> {
+  /**
+   * Busca todas as categorias do usuário em formato de árvore.
+   * Substitui o antigo 'getAll'.
+   */
+  async getCategorias(): Promise<Categoria[]> {
     const { data } = await http.get<Categoria[]>("/Categorias");
     return data;
   },
 
-  // NOVO: Busca uma única categoria pelo ID (conforme o seu cURL)
+  /**
+   * Busca os detalhes de uma única categoria pelo ID.
+   */
   async getById(id: string): Promise<Categoria> {
     const { data } = await http.get<Categoria>(`/Categorias/${id}`);
     return data;
   },
 
-  // Cadastra uma nova categoria ou subcategoria
+  /**
+   * Cadastra uma nova categoria ou subcategoria.
+   */
   async create(payload: {
     nome: string;
     icone: string;
@@ -25,7 +32,9 @@ export const categoriaService = {
     return data;
   },
 
-  // Atualiza os dados de uma categoria existente
+  /**
+   * Atualiza os dados de uma categoria existente.
+   */
   async update(
     id: string,
     payload: {
@@ -38,7 +47,9 @@ export const categoriaService = {
     await http.put(`/Categorias/${id}`, payload);
   },
 
-  // Remove uma categoria e limpa o cache no back-end
+  /**
+   * Remove uma categoria e limpa o cache no back-end.
+   */
   async delete(id: string): Promise<void> {
     await http.delete(`/Categorias/${id}`);
   },
