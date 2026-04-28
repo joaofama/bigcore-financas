@@ -1,9 +1,9 @@
 
 ---
 
-# 💰 Finanças API & Dashboard Real-time (BigCore)
+# 💰 BigCore (Finanças API & Dashboard)
 
-Este projeto é uma solução de alta performance para gestão financeira, projetada com foco em escalabilidade, testabilidade e manutenibilidade. A arquitetura foi desenvolvida seguindo os rigorosos padrões de **Clean Architecture**, guiada por **Domain-Driven Design (DDD)** e fundamentada nos princípios **SOLID**.
+O BigCore (Finanças API & Dashboard) é uma plataforma robusta de gestão financeira pessoal desenvolvida para oferecer controle total e monitoramento em tempo real de receitas e despesas. Através de um ecossistema que integra o gerenciamento dinâmico de categorias, subcategorias e fluxos transacionais, o projeto entrega uma experiência de usuário fluida e responsiva, culminando em um dashboard inteligente que reflete atualizações instantâneas via SignalR, garantindo que os dados financeiros estejam sempre sincronizados e prontos para a tomada de decisão.
 
 ---
 
